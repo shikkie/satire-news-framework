@@ -1,5 +1,100 @@
 # Satire News Framework
 
-A self-contained framework for realistic satirical news sites...
+Self-contained framework for **realistic satirical news sites**.
 
-(full detailed README as previously written)
+- Articles = folders of Markdown + assets (git is the CMS)
+- **React + Vite** SPA (responsive, social-friendly layout)
+- **Python preview server** for local article API / assets
+- Deployable as static files to **GitHub Pages**
+
+Demo masthead: **The Municipal Ledger**
+
+> This is satire tooling. Content is fictional. Do not use it to impersonate real outlets for harm.
+
+## Quick start (preview)
+
+Requirements: Node 20+, Python 3.10+, npm.
+
+```bash
+chmod +x dev.sh          # once
+./dev.sh                 # starts API :8787 + Vite :5173
+```
+
+Open any of:
+
+| Where | URL |
+|-------|-----|
+| This machine | http://127.0.0.1:5173 |
+| Hostname **bandit** (LAN DNS) | http://bandit:5173 |
+| LAN IP | http://192.168.1.17:5173 |
+
+Vite accepts Host headers for `bandit`, `bandit.local`, LAN IPs, etc. (`server.allowedHosts: true`).
+
+Servers bind **0.0.0.0** by default (all interfaces). Restrict to localhost with:
+
+```bash
+API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh
+```
+
+(Default API port is **8787** so it doesn’t collide with other local services; set `API_PORT` / `PREVIEW_API` if you need different ports.)
+
+```bash
+./dev.sh status
+./dev.sh logs
+./dev.sh stop
+```
+
+## Project layout
+
+| Path | Purpose |
+|------|---------|
+| `articles/<slug>/article.md` | Story (YAML frontmatter + body) |
+| `articles/<slug>/assets/` | Optional images |
+| `preview/server.py` | Local API + content server |
+| `src/` | React SPA |
+| `skill/satire-news-article-generator/` | Agent skill for drafting articles |
+| `dev.sh` | One-command local preview |
+| `AGENTS.md` | Conventions for AI/agents |
+
+## Article format
+
+```markdown
+---
+title: "Headline"
+dek: "Optional deck"
+author: "Byline"
+date: "2026-07-20"
+section: "Local"
+hero: "assets/hero.jpg"
+tags: ["local"]
+disclaimer: true
+---
+
+Markdown body here.
+```
+
+## Scripts
+
+```bash
+npm install
+npm run dev              # Vite only (needs API for live articles)
+npm run articles:build   # snapshot articles → public/ for static deploy
+npm run build            # production SPA → dist/
+```
+
+Recommended static build:
+
+```bash
+npm run articles:build && npm run build
+```
+
+## Agent / AI workflow
+
+See `AGENTS.md` and `skill/satire-news-article-generator/SKILL.md`.
+
+Typical loop:
+
+1. Draft `articles/<slug>/article.md` (skill helps)
+2. `./dev.sh` and review in the browser
+3. Commit article folder
+4. `npm run articles:build && npm run build` for Pages deploy
