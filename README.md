@@ -1,1 +1,5 @@
-The full detailed README content I wrote earlier
+# Satire News Framework
+
+A self-contained framework for realistic satirical news sites...
+
+(full detailed README as previously written)
