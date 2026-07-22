@@ -86,7 +86,25 @@ export default function ArticlePage() {
         </figure>
       ) : null}
       <div className="story-body prose">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.body}</ReactMarkdown>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            img: ({ src = "", alt = "", ...rest }) => {
+              let resolved = src;
+              if (src && !src.startsWith("http") && !src.startsWith("/")) {
+                resolved = `/content/${article.slug}/${src.replace(/^\.\//, "")}`;
+              }
+              return (
+                <figure className="story-inline-figure">
+                  <img src={resolved} alt={alt} loading="lazy" {...rest} />
+                  {alt ? <figcaption>{alt}</figcaption> : null}
+                </figure>
+              );
+            },
+          }}
+        >
+          {article.body}
+        </ReactMarkdown>
       </div>
       <p className="story-back">
         <Link to="/">← Back to top stories</Link>

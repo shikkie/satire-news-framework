@@ -323,6 +323,25 @@ code {
   padding-left: 1.3rem;
 }
 
+.prose .story-inline-figure {
+  margin: 1.25rem 0 1.5rem;
+  max-width: 100%;
+}
+
+.prose .story-inline-figure img {
+  width: 100%;
+  border-radius: 10px;
+  background: #e8e0d2;
+}
+
+.prose .story-inline-figure figcaption {
+  margin-top: 0.45rem;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
 .story-back {
   margin-top: 2rem;
   padding-top: 1rem;

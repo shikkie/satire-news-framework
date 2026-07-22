@@ -92,6 +92,7 @@ npm run build         # writes dist/ (SPA + snapshot of articles)
 ## Conventions for agents
 
 - Prefer editing article folders over inventing a CMS
+- **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (slug, `article.md` only, `assets/` naming, `/content/<slug>/assets/…` inline URLs, git push to publish)
 - Keep the SPA dependency-light (React + markdown renderer only)
 - Do not commit secrets; no API keys required for core preview
 - When adding sample/demo content, keep it clearly satirical and non-defamatory
