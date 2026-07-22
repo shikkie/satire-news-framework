@@ -9,16 +9,60 @@ const cache = {
   bySlug: new Map(),
 };
 
-function contentUrl(slug, rel) {
-  if (!rel) return "";
-  const clean = rel.replace(/^\.?\//, "");
-  return `./content/${slug}/${clean}`;
+/**
+ * Resolve any article-relative or content path to a browser-fetchable URL.
+ *
+ * Accepted inputs:
+ *   assets/hero.jpg
+ *   ./assets/hero.jpg
+ *   /content/<slug>/assets/hero.jpg
+ *   content/<slug>/assets/hero.jpg
+ *   https://...
+ *
+ * Output always targets the preview proxy / static content tree:
+ *   /content/<slug>/assets/hero.jpg  (absolute from site root — works with Vite proxy)
+ */
+export function resolveContentUrl(slug, path) {
+  if (!path) return "";
+  const raw = String(path).trim();
+  if (!raw) return "";
+
+  if (/^https?:\/\//i.test(raw) || raw.startsWith("data:")) {
+    return raw;
+  }
+
+  // Already a /content/... or content/... URL — normalize + fix wrong slug if needed
+  const contentMatch = raw.match(/^(?:\/)?content\/([^/]+)\/(.+)$/);
+  if (contentMatch) {
+    const filePart = contentMatch[2].replace(/^\/+/, "");
+    // Prefer the article's real slug (agents sometimes typo the path)
+    return `/content/${slug}/${filePart}`;
+  }
+
+  // Strip leading ./ and /
+  let rel = raw.replace(/^\.\//, "").replace(/^\/+/, "");
+
+  // If someone wrote articles/<slug>/assets/... strip the prefix
+  const articlesPrefix = rel.match(/^articles\/[^/]+\/(.+)$/);
+  if (articlesPrefix) {
+    rel = articlesPrefix[1];
+  }
+
+  // Bare filename → assume assets/
+  if (!rel.includes("/")) {
+    rel = `assets/${rel}`;
+  }
+
+  return `/content/${slug}/${rel}`;
 }
 
 export function heroSrc(article) {
   if (!article?.hero) return "";
-  if (article.hero.startsWith("http")) return article.hero;
-  return contentUrl(article.slug, article.hero);
+  return resolveContentUrl(article.slug, article.hero);
+}
+
+export function inlineImageSrc(article, src) {
+  return resolveContentUrl(article.slug, src);
 }
 
 async function loadStaticBundle() {
@@ -82,4 +126,10 @@ export function formatDate(iso) {
     month: "long",
     day: "numeric",
   });
+}
+
+/** Bust SPA list cache after new articles appear (dev convenience). */
+export function clearArticleCache() {
+  cache.list = null;
+  cache.bySlug.clear();
 }

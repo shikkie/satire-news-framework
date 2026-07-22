@@ -37,7 +37,7 @@ At a packed town hall, one resident shouted what many were thinking:
 
 Wildlife experts attempted to point out that Jimothy’s condition is congenital and he appears perfectly healthy, but their statements were largely drowned out by chants of “No MAGA trash pandas!”
 
-![A doe in California oak woodland.](/content/jimothy-maga-raccoon-scandal/assets/hero-jimothy-maga.jpg)
+![Jimothy, Seattle’s short-spine celebrity raccoon, before the scandal.](assets/hero-jimothy-maga.jpg)
 
 ### Official Response
 
@@ -45,7 +45,7 @@ Mayor’s office sources confirmed that the formation of the RICE agency is “u
 
 In a statement, officials said: “Seattle will not tolerate any wildlife that undermines our shared progressive values. If Jimothy wants to wear the red hat, he can do it somewhere else.”
 
-![Seattle activists protesting with anti-Jimothy signs.](/content/jimothy-maga-raccoon-scandal/assets/social-reaction.jpg)
+![Seattle activists react as Jimothy’s alleged MAGA ties go viral.](assets/social-reaction.jpg)
 
 ### What Happens Now?
 
@@ -59,4 +59,4 @@ One thing is certain: the Summer of Jimothy just got a lot more complicated.
 
 *This is a work of satire. No actual raccoons were radicalized in the making of this article.*
 
-![City official announcing the potential RICE agency.](/content/jimothy-maga-raccoon-scandal/assets/rice-agency-briefing.jpg)
+![City officials float a Raccoon Immigration and Customs Enforcement (RICE) agency.](assets/rice-agency-briefing.jpg)

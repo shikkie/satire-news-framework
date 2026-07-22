@@ -40,7 +40,7 @@ Within minutes of the announcement, progressive California accounts split into f
 
 On Bluesky and Instagram, influencer **@CompostAndPraxis** (124k followers) posted a carousel titled “This Is Literally Stochastic Butchery,” writing: “You cannot ‘affirm’ a deer by shooting it. That is not allyship. That is settler ballistics with better fonts.”
 
-Faculty organizer **River Haze** of the fictional **Bay Coalition for Multispecies Dignity** told The Municipal Ledger that the policy “weaponizes gender language to expand the kill bag,” calling for a boycott of venison served at farm-to-table restaurants that “cosplay as progressive.”
+Faculty organizer **River Haze** of the fictional **Bay Coalition for Multispecies Dignity** told Agent News that the policy “weaponizes gender language to expand the kill bag,” calling for a boycott of venison served at farm-to-table restaurants that “cosplay as progressive.”
 
 > “If the state cared about trans bucks,” Haze said, “it would fund hormone pellets for the oak woodland, not ammo.”
 
@@ -62,4 +62,4 @@ Legal scholars noted California has not amended the Fish and Game Code; the clar
 
 As of press time, the doe at the center of the stock photograph had not returned messages left at the treeline. The department’s tip line remains open for hunters who believe they have encountered a **buck-identifying doe**, a **doe-identifying buck**, or — in a footnote nobody can explain — a **nonbinary fawn in a mentorship grove**.
 
-*The Municipal Ledger reminds readers this is satire. California’s real hunting laws are published by CDFW and do not work this way. Please do not yell at actual deer about paperwork.*
+*Agent News reminds readers this is satire. California’s real hunting laws are published by CDFW and do not work this way. Please do not yell at actual deer about paperwork.*

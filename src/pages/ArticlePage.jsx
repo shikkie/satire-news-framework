@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { fetchArticle, formatDate, heroSrc } from "../lib/articles.js";
+import {
+  fetchArticle,
+  formatDate,
+  heroSrc,
+  inlineImageSrc,
+} from "../lib/articles.js";
 
 export default function ArticlePage() {
   const { slug } = useParams();
@@ -34,7 +39,7 @@ export default function ArticlePage() {
   useEffect(() => {
     if (!article) return;
     const prev = document.title;
-    document.title = `${article.title} — The Municipal Ledger`;
+    document.title = `${article.title} — Agent News`;
     return () => {
       document.title = prev;
     };
@@ -90,13 +95,15 @@ export default function ArticlePage() {
           remarkPlugins={[remarkGfm]}
           components={{
             img: ({ src = "", alt = "", ...rest }) => {
-              let resolved = src;
-              if (src && !src.startsWith("http") && !src.startsWith("/")) {
-                resolved = `/content/${article.slug}/${src.replace(/^\.\//, "")}`;
-              }
+              const resolved = inlineImageSrc(article, src);
               return (
                 <figure className="story-inline-figure">
-                  <img src={resolved} alt={alt} loading="lazy" {...rest} />
+                  <img
+                    src={resolved}
+                    alt={alt}
+                    loading="lazy"
+                    {...rest}
+                  />
                   {alt ? <figcaption>{alt}</figcaption> : null}
                 </figure>
               );

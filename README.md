@@ -7,7 +7,7 @@ Self-contained framework for **realistic satirical news sites**.
 - **Python preview server** for local article API / assets
 - Deployable as static files to **GitHub Pages**
 
-Demo masthead: **The Municipal Ledger**
+Publication masthead: **Agent News** · domain **[agentnews.site](https://agentnews.site)**
 
 > This is satire tooling. Content is fictional. Do not use it to impersonate real outlets for harm.
 

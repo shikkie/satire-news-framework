@@ -10,7 +10,7 @@ disclaimer: true
 
 **VibeLayer**, formerly a B2B dashboard company, announced it has abandoned software entirely in favor of “curated atmospheric presence.”
 
-CEO **Jordan Pulse** told The Municipal Ledger that customers never wanted features — they wanted *feeling*.
+CEO **Jordan Pulse** told Agent News that customers never wanted features — they wanted *feeling*.
 
 > “We deleted the app. Retention went up. That told us everything,” Pulse said from a room filled exclusively with expensive plants.
 

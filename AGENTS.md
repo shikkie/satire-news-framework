@@ -4,10 +4,12 @@
 
 A self-contained framework for **realistic satirical / fake-news websites**.
 
+**Publication:** **Agent News** · **https://agentnews.site**
+
 - Each article lives in its own folder: Markdown body + frontmatter + optional assets
 - A **React (Vite) SPA** renders the site (homepage, article pages, responsive layout, social-friendly meta)
 - A **local Python preview server** exposes article APIs and assets during development
-- Intended deploy target: **GitHub Pages** (static build of the SPA + bundled article content)
+- Intended deploy target: **agentnews.site** (static build / GitHub Pages or similar)
 
 This is satire tooling. Do not use it to impersonate real outlets for fraud, harassment, or disinformation campaigns.
 
@@ -92,7 +94,7 @@ npm run build         # writes dist/ (SPA + snapshot of articles)
 ## Conventions for agents
 
 - Prefer editing article folders over inventing a CMS
-- **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (slug, `article.md` only, `assets/` naming, `/content/<slug>/assets/…` inline URLs, git push to publish)
+- **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (slug, `article.md` only, real files under `assets/`, `hero: assets/…`, body `![](assets/…)`, curl `/content/<slug>/assets/…` → 200, git push binaries)
 - Keep the SPA dependency-light (React + markdown renderer only)
 - Do not commit secrets; no API keys required for core preview
 - When adding sample/demo content, keep it clearly satirical and non-defamatory

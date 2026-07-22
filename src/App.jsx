@@ -8,8 +8,8 @@ export default function App() {
   return (
     <div className="site">
       <div className="satire-banner" role="note">
-        <strong>Satire site</strong> — The Municipal Ledger is a demo for the
-        satire-news-framework. Not a real news organization.{" "}
+        <strong>Satire site</strong> — Agent News (agentnews.site) is fictional
+        satire, not a real news organization.{" "}
         <Link to="/">Home</Link>
       </div>
       <SiteHeader />
