@@ -80,11 +80,6 @@ export default function ArticlePage() {
       <p className="byline">
         By <strong>{article.author}</strong>
       </p>
-      {article.disclaimer !== false ? (
-        <p className="story-disclaimer" role="note">
-          Satirical content. Not real news.
-        </p>
-      ) : null}
       {hero ? (
         <figure className="story-hero">
           <img src={hero} alt="" />

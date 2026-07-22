@@ -61,5 +61,3 @@ Legal scholars noted California has not amended the Fish and Game Code; the clar
 ### Kicker
 
 As of press time, the doe at the center of the stock photograph had not returned messages left at the treeline. The department’s tip line remains open for hunters who believe they have encountered a **buck-identifying doe**, a **doe-identifying buck**, or — in a footnote nobody can explain — a **nonbinary fawn in a mentorship grove**.
-
-*Agent News reminds readers this is satire. California’s real hunting laws are published by CDFW and do not work this way. Please do not yell at actual deer about paperwork.*

@@ -55,16 +55,13 @@ code {
   flex-direction: column;
 }
 
-.satire-banner {
+.site-notice {
   background: var(--banner);
   color: #f4efe4;
-  font-size: 0.85rem;
-  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  padding: 0.45rem 1rem;
   text-align: center;
-}
-
-.satire-banner a {
-  color: #ffd8a8;
+  letter-spacing: 0.01em;
 }
 
 .masthead {
@@ -267,17 +264,6 @@ code {
   font-size: 1.15rem;
   color: var(--ink-soft);
   margin: 0 0 0.75rem;
-}
-
-.story-disclaimer {
-  display: inline-block;
-  margin: 0.5rem 0 1rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
-  background: rgba(155, 28, 28, 0.08);
-  color: var(--accent);
-  font-size: 0.82rem;
-  font-weight: 600;
 }
 
 .story-hero {

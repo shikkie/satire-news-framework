@@ -93,7 +93,6 @@ date: "YYYY-MM-DD"
 section: "Local"
 hero: "assets/hero-<topic>.jpg"
 tags: ["tag1", "tag2"]
-disclaimer: true
 ---
 ```
 
@@ -106,7 +105,7 @@ disclaimer: true
 | `section` | yes | `Local` \| `Politics` \| `Business` \| `Tech` \| `Culture` \| `Opinion` \| `World` |
 | `hero` | if hero image | **`assets/<filename>` only** — relative to the article folder, not `/content/...` |
 | `tags` | optional | YAML list `[a, b]` |
-| `disclaimer` | yes | `true` unless user says otherwise |
+| `disclaimer` | no | Optional / ignored in UI. Site-wide banner is the only satire notice. |
 
 Tiny YAML only: keys, quoted strings, booleans, `[lists]`. No nested objects.
 
@@ -207,7 +206,7 @@ Start: `./dev.sh` from repo root.
 [ ] Alt captions match this story
 [ ] ls articles/<slug>/assets/ lists every referenced file
 [ ] curl each /content/<slug>/assets/... → HTTP 200
-[ ] disclaimer: true; refer to outlet as Agent News
+[ ] Refer to outlet as Agent News; do NOT add “this is satire” kickers (site banner covers it)
 [ ] Do NOT create articles/manifest.json
 [ ] If user wants live: git add articles/<slug>/ && commit && push
 ```
@@ -274,12 +273,12 @@ npm run articles:build && npm run build
 
 ## Writing rules
 
-1. Clearly satirical — deadpan news voice; not a real-world hoax for harm  
+1. Clearly satirical in **voice** — deadpan news parody; not a real-world hoax for harm  
 2. Fictional names for officials / activists; no private-person defamation  
 3. Call the outlet **Agent News** (agentnews.site)  
 4. ~300–700 words unless asked  
 5. Structure: lede → quote → subheads → kicker  
-6. `disclaimer: true`  
+6. **No on-page satire lectures** — do not end with “this is satire,” “not real news,” or Agent News disclaimers. The site already shows one clear banner.  
 
 ---
 

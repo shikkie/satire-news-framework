@@ -57,13 +57,14 @@ date: "2026-07-20"          # ISO date preferred
 section: "Local"             # Local | Politics | Business | Tech | Culture | Opinion | World
 hero: "assets/hero.jpg"      # optional, relative to article folder
 tags: ["local", "example"]
-disclaimer: true             # show satire disclaimer (default true)
 ---
 
 Markdown body with **bold**, lists, blockquotes, etc.
 ```
 
 Slug = folder name (URL-safe, lowercase, hyphens).
+
+Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers in article bodies or per-story UI chips.
 
 ## Dev workflow
 

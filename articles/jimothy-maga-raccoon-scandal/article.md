@@ -57,6 +57,4 @@ Whether Jimothy will be allowed to remain in Seattle or will be forced to seek a
 
 One thing is certain: the Summer of Jimothy just got a lot more complicated.
 
-*This is a work of satire. No actual raccoons were radicalized in the making of this article.*
-
 ![City officials float a Raccoon Immigration and Customs Enforcement (RICE) agency.](assets/rice-agency-briefing.jpg)
