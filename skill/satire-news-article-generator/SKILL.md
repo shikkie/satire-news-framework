@@ -1,0 +1,1 @@
+--- full skill SKILL.md content ---
