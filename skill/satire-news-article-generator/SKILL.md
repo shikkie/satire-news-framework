@@ -21,6 +21,26 @@ satire-news-framework/
 
 Publication: **Agent News** · **https://agentnews.site**
 
+### Trigger via script (optional)
+
+From any directory:
+
+```bash
+# long free-text brief as one argument
+./scripts/create-article.sh "Your article brief here..."
+
+# multi-line / very long
+./scripts/create-article.sh --file brief.txt
+./scripts/create-article.sh <<'EOF'
+multi-line brief...
+EOF
+
+# preview composed prompt only
+./scripts/create-article.sh --dry-run "brief..."
+```
+
+The script `cd`s/`--cwd`s to the repo root, wraps **grok** headless (`--prompt-file`, `--always-approve`), and injects instructions to follow this skill. Env: `GROK_BIN`, `GROK_MODEL`, `SKIP_YOLO=1`.
+
 ---
 
 ## End-to-end workflow (do in order)
@@ -226,17 +246,16 @@ Tiny YAML only (no nested objects).
 
 ## Media production (Grok Imagine)
 
-Load the **imagine** skill whenever calling image or video tools. Prefer **multiple** assets on illustrated stories.
+Load the **imagine** skill for **still** image tools only. Prefer **multiple** stills on illustrated stories.
 
 ### When to use what
 
-| Need | Tool | Notes |
-|------|------|--------|
+| Need | Action | Notes |
+|------|--------|--------|
 | New still | `image_gen` | Photojournalism / wire-photo style; short text only |
 | Same subject, new angle | `image_edit` | Pass prior image path for consistency |
-| Animate one still | `image_to_video` | `duration` 6 or 10; default 6; `resolution_name` 480p unless asked |
-| Multi-still guided clip | `reference_to_video` | 2–7 images + prompt + `aspect_ratio` |
-| Social / OG card | Still `hero` | **Never** put `.mp4` in `hero:` — crawlers need an image |
+| Social / OG card | Still `hero` | **Never** put `.mp4` in `hero:` |
+| **Video / clip** | **Do not call video tools** | Give user an Imagine prompt; they return the file |
 
 ### Multi-image set (typical illustrated article)
 
@@ -253,32 +272,69 @@ Aim for **3–5** stills with distinct roles (skip roles that do not fit the sto
 
 Generate **in parallel** when subjects are independent; use `image_edit` when the same character/object must match across frames.
 
-### Video (optional, when motion helps)
+### Video (user-provided only — never generate in-agent)
 
-1. Create a strong still first (`image_gen` or `image_edit`).
-2. Call `image_to_video` with that image + a short present-tense motion prompt (one clear camera move or subject motion).
-3. Copy the returned `.mp4` into `assets/` as `kebab-case-clip.mp4` (or `.webm`).
-4. Embed in the body with the **same markdown image syntax** (the SPA renders `.mp4`/`.webm` as `<video controls>`):
+**Forbidden:** `image_to_video`, `reference_to_video`, `video_gen`, or any attempt to animate in this session.
 
-```markdown
-![Tankers roll past cooling towers at dusk.](assets/campus-tankers-clip.mp4)
+When the user asks for video (or a clip would help):
+
+1. Generate (or pick) a strong **still** first and save it under `assets/` (e.g. `interview-still.jpg`).
+2. Reply with a **ready-to-paste Imagine prompt** and clear handoff instructions — do **not** call video tools.
+3. Wait for the user to return a `.mp4` (path or file).
+4. Copy it to `articles/<slug>/assets/<scene>-clip.mp4`, embed, verify, then commit if publishing.
+
+**Prompt template to give the user** (fill in specifics):
+
+```text
+Use Grok Imagine image-to-video on this still:
+  <absolute path or describe which asset, e.g. articles/<slug>/assets/interview-still.jpg>
+
+Motion prompt (paste as-is or tweak):
+  <one short present-tense beat: subject motion + optional slow camera push-in; 1–2 sentences>
+
+Settings: 6s (or 10s), 480p unless you want 720p, match the still’s aspect (prefer 16:9).
+
+When done, save/export the .mp4 and put it here (or tell the agent the path):
+  articles/<slug>/assets/<scene>-clip.mp4
 ```
 
-**Video limits / taste:** prefer one short clip mid-article, not a wall of autoplay. Keep content non-graphic. Prefer 16:9 source stills for clips. OG/Twitter still use `hero` JPG.
+**Example filled prompt:**
 
-### Copy out of session storage (required)
+```text
+Image-to-video source:
+  articles/orange-kitten-calls-911-hungry/assets/kitten-interview-still.jpg
+
+Motion:
+  adorable orange kitten faces the camera and softly blinks, tiny head tilt as if
+  answering a question, gentle camera push-in, warm morning light
+
+6 seconds, 480p. Save as:
+  articles/orange-kitten-calls-911-hungry/assets/kitten-interview-clip.mp4
+```
+
+After the user drops the file:
+
+```markdown
+![Cheddar’s interview — soft blinks, hard allegations.](assets/kitten-interview-clip.mp4)
+```
+
+The SPA renders `.mp4`/`.webm` as `<video controls>`. Prefer one short clip mid-article. Never mention tool failures or “video unavailable” in the article body.
+
+### Copy out of session storage (required for stills)
 
 ```bash
-# Images (example paths — use the tool’s returned path)
 cp /path/from/image_gen.jpg articles/<slug>/assets/hero-<topic>.jpg
-
-# Video
-cp /path/from/image_to_video.mp4 articles/<slug>/assets/<scene>-clip.mp4
-
 chmod 644 articles/<slug>/assets/*
 ```
 
-Never leave final paths as `1.jpg` / `5.mp4` from the tool dump names.
+For user-supplied video:
+
+```bash
+cp /path/user/gave.mp4 articles/<slug>/assets/<scene>-clip.mp4
+chmod 644 articles/<slug>/assets/<scene>-clip.mp4
+```
+
+Never leave final paths as `1.jpg` / tool dump names.
 
 ---
 
@@ -338,11 +394,12 @@ Naming: kebab-case. Prefer `.jpg` for stills, `.mp4` for video.
 [ ] ls articles/ — unique kebab-case slug
 [ ] mkdir -p articles/<slug>/assets
 [ ] Write articles/<slug>/article.md (frontmatter + body)
-[ ] Plan media: multi stills (roles) ± video if motion helps
-[ ] Grok Imagine: image_gen / image_edit (+ image_to_video as needed)
-[ ] Copy ALL binaries into assets/ with final names (not session paths only)
-[ ] hero: is a STILL image; body ![](assets/...) for each image and .mp4
-[ ] Alt/captions match THIS story
+[ ] Plan media: multi stills (roles)
+[ ] Grok Imagine stills only: image_gen / image_edit — NEVER image_to_video
+[ ] If user wants video: give Imagine prompt + still path; wait for their .mp4
+[ ] Copy ALL binaries into assets/ with final names
+[ ] hero: is a STILL; body ![](assets/...) for images; .mp4 only after user file exists
+[ ] Alt/captions match THIS story; no “video unavailable” mishap text
 [ ] ls assets/ + curl every referenced file → 200
 [ ] Optional: rendered-article-viewport.jpg + preview.jpg
 [ ] No satire kickers; no manifest.json
@@ -406,6 +463,7 @@ Do **not** commit: `node_modules/`, `dist/`, `pages/`, `.pids/`, `logs/`, `.env`
 | `jimothy-maga-raccoon-scandal` | Illustrated; relative `assets/` paths |
 | `data-centers-buy-bottled-water` | Business satire + previews |
 | `barista-butcher-teytey-arrested` | Longform crime pastiche + assets |
+| `orange-kitten-calls-911-hungry` | Multi-still local satire; interview as still + transcript |
 | `city-council-bans-gravity` | Text-only (no `assets/`) |
 
 ---
@@ -423,4 +481,6 @@ Do **not** commit: `node_modules/`, `dist/`, `pages/`, `.pids/`, `logs/`, `.env`
 | Forget `docs/` when hooks missing | Pages stays stale |
 | End article with “this is satire” lectures | Redundant with site banner |
 | Hand-edit `docs/content/` as the source of truth | Overwritten by `npm run build` — edit `articles/` only |
+| Calling `image_to_video` / video tools in this agent | Broken on ZDR — user runs Imagine; agent only prompts |
+| “Video generation unavailable” in article copy | Never; use still + clean prose until user supplies .mp4 |
 | Autoplay-heavy or graphic violence video | Keep clips short, controls on, tasteful |

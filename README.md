@@ -139,6 +139,22 @@ Local check: `npm run build && npm run preview` → http://127.0.0.1:4173
 
 See `AGENTS.md` and `skill/satire-news-article-generator/SKILL.md`.
 
+### Create an article from the shell
+
+```bash
+./scripts/create-article.sh "Six-week-old orange kitten calls 911 for late breakfast..."
+
+# long briefs
+./scripts/create-article.sh --file my-brief.txt
+./scripts/create-article.sh <<'EOF'
+full multi-line pitch here
+EOF
+
+./scripts/create-article.sh --dry-run "..."   # print prompt only
+```
+
+Runs **grok** headless in this repo (`--cwd`), auto-approves tools, and tells the agent to follow the article skill. Requires `grok` on `PATH` (or set `GROK_BIN`).
+
 Typical loop:
 
 1. Draft `articles/<slug>/article.md` (skill helps)
