@@ -14,6 +14,7 @@ import {
   applySocialMeta,
   siteOrigin,
 } from "../lib/socialMeta.js";
+import AdRotation from "../components/AdRotation.jsx";
 
 export default function ArticlePage() {
   const { slug } = useParams();
@@ -133,6 +134,7 @@ export default function ArticlePage() {
           {article.body}
         </ReactMarkdown>
       </div>
+      <AdRotation className="ad-article" />
       <p className="story-back">
         <Link to="/">← Back to top stories</Link>
       </p>

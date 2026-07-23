@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-07-23T05:07:34.463Z",
+  "ads": [
+    {
+      "slug": "forever-paws-pet-crematory",
+      "name": "Forever Paws Pet Memorial & Crematory",
+      "tagline": "Because the rainbow bridge has a waiting room.",
+      "phone": "(305) 555-PAWS",
+      "email": "care@foreverpaws.example",
+      "website": "https://foreverpaws.example",
+      "address": "4800 Quiet Lane, Suite B, Coral Gables, FL",
+      "hours": "Mon–Fri 10am–5pm · By appointment weekends",
+      "category": "Services",
+      "cta": "Book a farewell consultation",
+      "logo": "assets/logo.jpg",
+      "image": "assets/hero.jpg",
+      "weight": 1,
+      "active": true,
+      "bio": "**Forever Paws** offers gentle, slightly over-narrated goodbyes for companions great and small. Private cremation, paw-print keepsakes, and a streaming memorial package your relatives will mute.\n\nWe do not accept roadkill referrals from neighboring BBQ establishments. Complementary lavender water for humans. Complementary judgment for people who still say “it’s just a pet.”"
+    },
+    {
+      "slug": "splat-and-sizzle-roadkill-bbq",
+      "name": "Splat & Sizzle Roadkill BBQ",
+      "tagline": "If it was slow enough, it's dinner.",
+      "phone": "(863) 555-SPLT",
+      "email": "trough@splatandsizzle.example",
+      "website": "https://splatandsizzle.example",
+      "address": "Mile Marker 17, Hwy 441, Okeechobee, FL",
+      "hours": "Tue–Sun 11am–9pm · Closed Mondays (scavenging)",
+      "category": "Dining",
+      "cta": "Order the Flat Special",
+      "logo": "assets/logo.jpg",
+      "image": "assets/hero.jpg",
+      "weight": 1,
+      "active": true,
+      "bio": "Family-owned since last week, **Splat & Sizzle** serves “highway-fresh” smoked plates with a side of denial and sweet tea that could strip paint. Our pitmasters pride themselves on a nose-to-tail philosophy — especially when the tail was still attached at the shoulder of the road.\n\nAsk about the **Daily Flattened** board. Catering available for reunions, divorces, and HOA meetings that have gone too long. Not affiliated with any Department of Transportation cleanup crew (they wish)."
+    }
+  ]
+}

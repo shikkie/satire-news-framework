@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Local preview API for satire-news-framework article folders.
+"""Local preview API for satire-news-framework article + ad folders.
 
 Serves:
   GET /api/health
   GET /api/articles
   GET /api/articles/<slug>
-  GET /content/<slug>/...   → files under articles/<slug>/
+  GET /api/ads
+  GET /api/ads/<slug>
+  GET /content/<slug>/...      → articles/<slug>/
+  GET /ads-content/<slug>/...  → ads/<slug>/
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from urllib.parse import unquote, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 ARTICLES_DIR = ROOT / "articles"
+ADS_DIR = ROOT / "ads"
 # 0.0.0.0 = all interfaces (phone / LAN access). Override with API_HOST=127.0.0.1 for local-only.
 HOST = os.environ.get("API_HOST", "0.0.0.0")
 PORT = int(os.environ.get("API_PORT", "8787"))
@@ -139,10 +143,10 @@ def get_article(slug: str) -> dict | None:
     }
 
 
-def safe_content_path(slug: str, rel: str) -> Path | None:
+def safe_under(root: Path, slug: str, rel: str) -> Path | None:
     if ".." in slug or ".." in rel or rel.startswith("/"):
         return None
-    base = (ARTICLES_DIR / slug).resolve()
+    base = (root / slug).resolve()
     target = (base / rel).resolve()
     try:
         target.relative_to(base)
@@ -151,6 +155,64 @@ def safe_content_path(slug: str, rel: str) -> Path | None:
     if not target.is_file():
         return None
     return target
+
+
+def safe_content_path(slug: str, rel: str) -> Path | None:
+    return safe_under(ARTICLES_DIR, slug, rel)
+
+
+def safe_ad_path(slug: str, rel: str) -> Path | None:
+    return safe_under(ADS_DIR, slug, rel)
+
+
+def list_ads() -> list[dict]:
+    items: list[dict] = []
+    if not ADS_DIR.is_dir():
+        return items
+    for folder in sorted(ADS_DIR.iterdir()):
+        if not folder.is_dir() or folder.name.startswith("."):
+            continue
+        md = folder / "business.md"
+        if not md.is_file():
+            continue
+        parsed = parse_article_md(md)
+        if not parsed:
+            continue
+        meta = parsed["meta"]
+        if meta.get("active") is False:
+            continue
+        weight = meta.get("weight", 1)
+        try:
+            weight = float(weight)
+        except (TypeError, ValueError):
+            weight = 1
+        items.append(
+            {
+                "slug": folder.name,
+                "name": meta.get("name") or folder.name,
+                "tagline": meta.get("tagline") or "",
+                "phone": meta.get("phone") or "",
+                "email": meta.get("email") or "",
+                "website": meta.get("website") or "",
+                "address": meta.get("address") or "",
+                "hours": meta.get("hours") or "",
+                "category": meta.get("category") or "Sponsored",
+                "cta": meta.get("cta") or "Learn more",
+                "logo": meta.get("logo") or "",
+                "image": meta.get("image") or meta.get("hero") or "",
+                "weight": weight if weight > 0 else 1,
+                "active": True,
+                "bio": parsed["body"],
+            }
+        )
+    return items
+
+
+def get_ad(slug: str) -> dict | None:
+    for ad in list_ads():
+        if ad["slug"] == slug:
+            return ad
+    return None
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -198,7 +260,9 @@ class Handler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "articles_dir": str(ARTICLES_DIR),
+                    "ads_dir": str(ADS_DIR),
                     "count": len(list_articles()),
+                    "ads": len(list_ads()),
                 },
             )
             return
@@ -216,9 +280,32 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, article)
             return
 
+        if path == "/api/ads":
+            self._json(200, {"ads": list_ads()})
+            return
+
+        m = re.fullmatch(r"/api/ads/([^/]+)", path)
+        if m:
+            ad = get_ad(m.group(1))
+            if not ad:
+                self._json(404, {"error": "ad not found"})
+                return
+            self._json(200, ad)
+            return
+
         m = re.fullmatch(r"/content/([^/]+)/(.*)", path)
         if m:
             file_path = safe_content_path(m.group(1), m.group(2))
+            if not file_path:
+                self._json(404, {"error": "file not found"})
+                return
+            ctype = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
+            self._bytes(200, file_path.read_bytes(), ctype)
+            return
+
+        m = re.fullmatch(r"/ads-content/([^/]+)/(.*)", path)
+        if m:
+            file_path = safe_ad_path(m.group(1), m.group(2))
             if not file_path:
                 self._json(404, {"error": "file not found"})
                 return
@@ -231,9 +318,11 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> int:
     ARTICLES_DIR.mkdir(parents=True, exist_ok=True)
+    ADS_DIR.mkdir(parents=True, exist_ok=True)
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Preview API listening on http://{HOST}:{PORT}", flush=True)
     print(f"Articles root: {ARTICLES_DIR}", flush=True)
+    print(f"Ads root: {ADS_DIR}", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

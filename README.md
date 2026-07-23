@@ -56,6 +56,8 @@ API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh
 | `dev.sh` | One-command local preview |
 | `AGENTS.md` | Conventions for AI/agents |
 | `docs/` | **Production static site** for GitHub Pages (`main` + `/docs`) |
+| `ads/<slug>/` | Satirical sponsored businesses (ad rotation) |
+| `skill/satire-business-ad-generator/` | Skill to invent new ad businesses |
 
 ## Article format
 

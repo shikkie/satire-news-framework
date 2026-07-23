@@ -5,6 +5,8 @@ dist/
 # Snapshot outputs from npm run articles:build (recreated by npm run build)
 public/articles-data.json
 public/content/
+public/ads-data.json
+public/ads-content/
 # docs/ is the GitHub Pages site folder — commit it after `npm run build`
 # (do not gitignore docs/)
 .dev/

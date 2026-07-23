@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "articles:build": "node scripts/build-articles.mjs",
-    "build": "npm run articles:build && vite build && node scripts/inject-og-html.mjs",
+    "ads:build": "node scripts/build-ads.mjs",
+    "build": "npm run articles:build && npm run ads:build && vite build && node scripts/inject-og-html.mjs",
     "build:docs": "npm run build",
     "og:inject": "node scripts/inject-og-html.mjs",
     "preview": "vite preview",

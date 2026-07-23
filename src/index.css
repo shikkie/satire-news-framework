@@ -337,6 +337,140 @@ code {
   line-height: 1.4;
 }
 
+/* Sponsored satirical business ads */
+.ad-rotation {
+  margin: 1.5rem 0 0.5rem;
+}
+
+.ad-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: linear-gradient(180deg, #fffdf8 0%, #f3efe4 100%);
+  border: 1px dashed #b8a88a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.ad-card:hover {
+  border-color: var(--accent-soft);
+  box-shadow: 0 12px 28px rgba(20, 32, 51, 0.12);
+}
+
+.ad-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: rgba(11, 31, 51, 0.04);
+  border-bottom: 1px solid var(--rule);
+}
+
+.ad-category {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.ad-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+  gap: 0;
+}
+
+.ad-media img {
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  max-height: 220px;
+  object-fit: cover;
+  background: #e8e0d2;
+}
+
+.ad-copy {
+  padding: 0.9rem 1rem 1.05rem;
+  font-family: var(--sans);
+}
+
+.ad-title-row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  margin-bottom: 0.45rem;
+}
+
+.ad-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--rule);
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.ad-name {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.ad-tagline {
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.ad-bio {
+  margin: 0.4rem 0 0.55rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.ad-contact {
+  list-style: none;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.ad-cta {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: var(--banner);
+  color: #f7f3ea;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.ad-article {
+  margin-top: 1.75rem;
+  max-width: 42rem;
+}
+
+@media (max-width: 720px) {
+  .ad-body {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-media img {
+    max-height: 180px;
+  }
+}
+
+
 .story-back {
   margin-top: 2rem;
   padding-top: 1rem;

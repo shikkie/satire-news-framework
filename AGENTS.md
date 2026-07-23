@@ -35,12 +35,18 @@ This is satire tooling. Do not use it to impersonate real outlets for fraud, har
 │   └── server.py             # article API + asset server (port 8765)
 ├── articles/                 # one folder per story
 │   └── <slug>/
-│       ├── article.md        # YAML frontmatter + Markdown body
-│       └── assets/           # images, optional
+│       ├── article.md
+│       └── assets/
+├── ads/                      # satirical sponsored businesses (ad rotation)
+│   └── <slug>/
+│       ├── business.md
+│       └── assets/
 ├── src/                      # React SPA
 ├── public/                   # static files → copied into docs/ on build
 ├── docs/                     # production site (commit after npm run build)
 └── skill/
+    ├── satire-news-article-generator/
+    └── satire-business-ad-generator/
     └── satire-news-article-generator/
         └── SKILL.md
 ```
@@ -118,6 +124,7 @@ Committed hooks live in **`.githooks/`**. After clone (or `npm install`), hooks 
 
 - Prefer editing article folders over inventing a CMS
 - **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (slug, `article.md`, multi-image and optional Imagine video under `assets/`, `hero:` still only, body `![](assets/…)` for images and `.mp4`, curl → 200, commit binaries, pre-commit rebuilds `docs/`)
+- **New ads / fake businesses:** follow `skill/satire-business-ad-generator/SKILL.md` (`ads/<slug>/business.md` + assets; rotation on home + articles)
 - Keep the SPA dependency-light (React + markdown renderer only)
 - Do not commit secrets; no API keys required for core preview
 - When adding sample/demo content, keep it clearly satirical and non-defamatory

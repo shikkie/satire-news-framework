@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ArticleCard from "../components/ArticleCard.jsx";
+import AdRotation from "../components/AdRotation.jsx";
 import { fetchArticles } from "../lib/articles.js";
 import { applySocialMeta, siteOrigin } from "../lib/socialMeta.js";
 
@@ -80,6 +81,7 @@ export default function Home() {
           ))}
         </div>
       </section>
+      <AdRotation className="ad-home" />
       {rest.length > 3 ? (
         <section className="more-grid">
           <h2 className="section-heading">More headlines</h2>

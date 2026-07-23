@@ -49,6 +49,10 @@ export default defineConfig({
         target: PREVIEW_API,
         changeOrigin: true,
       },
+      "/ads-content": {
+        target: PREVIEW_API,
+        changeOrigin: true,
+      },
     },
   },
   preview: {

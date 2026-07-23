@@ -14,7 +14,7 @@ fi
 
 # Only rebuild when something that affects the static site is staged
 if ! git diff --cached --name-only --diff-filter=ACMRD | grep -qE \
-  '^(articles/|src/|public/|index\.html|package\.json|package-lock\.json|vite\.config\.|scripts/build-articles)'; then
+  '^(articles/|ads/|src/|public/|index\.html|package\.json|package-lock\.json|vite\.config\.|scripts/(build-articles|build-ads|inject-og))'; then
   exit 0
 fi
 
