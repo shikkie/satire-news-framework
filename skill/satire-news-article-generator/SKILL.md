@@ -61,12 +61,15 @@ curl -sS -o /dev/null -w "%{http_code}\n" \
 
 Also: `curl -sS http://127.0.0.1:8787/api/articles/<slug>` should return title + body.
 
-Preview URL:
+Preview / share URLs (**path routes**, not hash — required for Discord/social OG):
 
 ```text
-http://bandit:5173/#/article/<slug>
-http://127.0.0.1:5173/#/article/<slug>
+http://127.0.0.1:5173/article/<slug>
+http://bandit:5173/article/<slug>
+https://agentnews.site/article/<slug>
 ```
+
+Legacy `#/article/<slug>` links redirect to the path form.
 
 ### 5. Optional — browser page screenshots
 
@@ -79,7 +82,7 @@ When the user asks for a “preview,” “render,” or “what it looks like�
 #   rendered-article-preview.jpg   (full page)
 ```
 
-Use Playwright against `http://127.0.0.1:5173/#/article/<slug>`, convert PNG→JPG, commit with the story if useful. See existing articles for naming.
+Use Playwright against `http://127.0.0.1:5173/article/<slug>`, convert PNG→JPG, commit with the story if useful. See existing articles for naming.
 
 ### 6. Publish (git) — live GitHub Pages via `docs/`
 
@@ -245,8 +248,9 @@ Prefer `.jpg` / `.png` / `.webp`. Never leave files as `5.jpg` from the generato
 | List / one | `GET /api/articles`, `GET /api/articles/<slug>` |
 | Assets | `GET /content/<slug>/…` → `articles/<slug>/` |
 | Dev UI | Vite **5173**, proxies `/api` + `/content` |
-| Article URL | `/#/article/<slug>` |
+| Article URL | `/article/<slug>` (static HTML + OG tags for social) |
 | Production | Static snapshot in **`docs/`** (no Python on Pages) |
+| Social preview | Build injects `docs/article/<slug>/index.html` with `og:title`, `og:description`, `og:image` |
 
 ```bash
 ./dev.sh status    # API + Vite

@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import ArticleCard from "../components/ArticleCard.jsx";
 import { fetchArticles } from "../lib/articles.js";
+import { applySocialMeta, siteOrigin } from "../lib/socialMeta.js";
 
 export default function Home() {
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    applySocialMeta({
+      title: "Agent News",
+      description:
+        "Agent News — satirical reporting from agentnews.site. Headlines, investigations, and invented urgency.",
+      url: `${siteOrigin()}/`,
+      image: `${siteOrigin()}/favicon.svg`,
+      type: "website",
+    });
+  }, []);
 
   useEffect(() => {
     let alive = true;

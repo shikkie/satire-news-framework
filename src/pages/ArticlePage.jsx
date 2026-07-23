@@ -8,6 +8,11 @@ import {
   heroSrc,
   inlineImageSrc,
 } from "../lib/articles.js";
+import {
+  absoluteUrl,
+  applySocialMeta,
+  siteOrigin,
+} from "../lib/socialMeta.js";
 
 export default function ArticlePage() {
   const { slug } = useParams();
@@ -38,11 +43,14 @@ export default function ArticlePage() {
 
   useEffect(() => {
     if (!article) return;
-    const prev = document.title;
-    document.title = `${article.title} — Agent News`;
-    return () => {
-      document.title = prev;
-    };
+    const hero = heroSrc(article);
+    applySocialMeta({
+      title: `${article.title} — Agent News`,
+      description: article.dek || article.title,
+      url: `${siteOrigin()}/article/${article.slug}`,
+      image: absoluteUrl(hero) || `${siteOrigin()}/favicon.svg`,
+      type: "article",
+    });
   }, [article]);
 
   if (loading) {

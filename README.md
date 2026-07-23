@@ -125,6 +125,16 @@ Custom domain: `public/CNAME` is **agentnews.site** (copied into `docs/` on buil
 
 Local check: `npm run build && npm run preview` → http://127.0.0.1:4173
 
+### Social / Discord previews (Open Graph)
+
+Share **path** URLs (not hash):
+
+```text
+https://agentnews.site/article/data-centers-buy-bottled-water
+```
+
+`#/article/...` is stripped by crawlers and will **not** show a card. Build step `inject-og-html.mjs` writes per-article HTML with `og:title`, `og:description`, and `og:image` (hero). After deploy, re-scrape with Discord (paste link again) or [opengraph.xyz](https://www.opengraph.xyz/).
+
 ## Agent / AI workflow
 
 See `AGENTS.md` and `skill/satire-news-article-generator/SKILL.md`.

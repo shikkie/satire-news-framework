@@ -26,7 +26,8 @@ const allowAllHosts =
 
 export default defineConfig({
   plugins: [react()],
-  base: "./",
+  // Absolute paths so /article/<slug>/ shells load assets from site root (agentnews.site)
+  base: "/",
   server: {
     // Bind all interfaces so phones / other LAN devices can open the preview
     host: "0.0.0.0",

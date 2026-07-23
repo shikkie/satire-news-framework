@@ -67,6 +67,8 @@ Slug = folder name (URL-safe, lowercase, hyphens).
 
 Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers in article bodies or per-story UI chips.
 
+**Share URLs** use path routes: `https://agentnews.site/article/<slug>` (not `#/article/...`). Build injects Open Graph HTML under `docs/article/<slug>/` for Discord/social cards.
+
 ## Dev workflow
 
 ```bash

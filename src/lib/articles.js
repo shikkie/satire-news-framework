@@ -67,7 +67,8 @@ export function inlineImageSrc(article, src) {
 
 async function loadStaticBundle() {
   try {
-    const res = await fetch("./articles-data.json", { cache: "no-store" });
+    // Absolute path — article URLs live under /article/<slug>/
+    const res = await fetch("/articles-data.json", { cache: "no-store" });
     if (!res.ok) return null;
     const data = await res.json();
     return data.articles || [];

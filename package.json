@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "articles:build": "node scripts/build-articles.mjs",
-    "build": "npm run articles:build && vite build",
+    "build": "npm run articles:build && vite build && node scripts/inject-og-html.mjs",
     "build:docs": "npm run build",
+    "og:inject": "node scripts/inject-og-html.mjs",
     "preview": "vite preview",
     "hooks:install": "bash scripts/install-git-hooks.sh",
     "prepare": "bash scripts/install-git-hooks.sh"
