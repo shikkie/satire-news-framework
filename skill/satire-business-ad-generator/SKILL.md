@@ -169,6 +169,9 @@ Do **not** invent a parallel CMS or put ads inside `articles/`.
 |------|----------|
 | `splat-and-sizzle-roadkill-bbq` | Roadkill BBQ joint |
 | `forever-paws-pet-crematory` | Pet memorial / crematory |
+| `eternaguard-life-insurance` | Predatory-cheerful life insurance |
+| `budd-light-totally-straight` | Beer brand overcorrection campaign |
+| `tiny-paws-junior-costumes` | Child-size animal costume shop |
 
 ## Anti-patterns
 
