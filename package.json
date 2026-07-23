@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "articles:build": "node scripts/build-articles.mjs"
+    "articles:build": "node scripts/build-articles.mjs",
+    "build": "npm run articles:build && vite build",
+    "build:pages": "npm run build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.1.0",

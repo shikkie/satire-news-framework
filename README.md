@@ -55,6 +55,8 @@ API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh
 | `skill/satire-news-article-generator/` | Agent skill for drafting articles |
 | `dev.sh` | One-command local preview |
 | `AGENTS.md` | Conventions for AI/agents |
+| `pages/` | **Production build output** (gitignored; deployed to GitHub Pages) |
+| `.github/workflows/deploy-pages.yml` | Builds `pages/` and publishes to GitHub Pages |
 
 ## Article format
 
@@ -78,14 +80,33 @@ Markdown body here.
 ```bash
 npm install
 npm run dev              # Vite only (needs API for live articles)
-npm run articles:build   # snapshot articles → public/ for static deploy
-npm run build            # production SPA → dist/
+npm run articles:build   # snapshot articles → public/ (then copied into pages/ on build)
+npm run build            # articles snapshot + Vite → pages/
+npm run preview          # serve pages/ locally (after build)
 ```
 
-Recommended static build:
+## GitHub Pages (from `pages/`)
+
+GitHub’s branch UI only offers `/` or `/docs`. This repo deploys the **`pages/`** build folder via **GitHub Actions** instead.
+
+1. **Settings → Pages → Build and deployment → Source: GitHub Actions**
+2. Push to `main` (or run the **Deploy GitHub Pages** workflow manually)
+3. Workflow runs `npm run build` → uploads **`pages/`** → deploys
+
+Custom domain: `public/CNAME` is set to **agentnews.site** (copied into `pages/` on build). Point DNS:
+
+| Type | Name | Value |
+|------|------|--------|
+| A / ALIAS | `@` | GitHub Pages IPs (or your host docs) |
+| CNAME | `www` | `<user>.github.io` |
+
+Also enable **Enforce HTTPS** once DNS propagates.
+
+Local production check:
 
 ```bash
-npm run articles:build && npm run build
+npm run build
+npm run preview    # http://127.0.0.1:4173
 ```
 
 ## Agent / AI workflow
@@ -96,5 +117,5 @@ Typical loop:
 
 1. Draft `articles/<slug>/article.md` (skill helps)
 2. `./dev.sh` and review in the browser
-3. Commit article folder
-4. `npm run articles:build && npm run build` for Pages deploy
+3. Commit + push article folder to `main`
+4. Actions rebuilds `pages/` and updates agentnews.site

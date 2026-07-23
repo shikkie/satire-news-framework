@@ -1,5 +1,10 @@
 node_modules/
 dist/
+# Production static site (built into pages/ for GitHub Pages deploy)
+pages/
+# Snapshot outputs from npm run articles:build (recreated by npm run build)
+public/articles-data.json
+public/content/
 .dev/
 .pids/
 logs/

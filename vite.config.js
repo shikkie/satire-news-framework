@@ -53,10 +53,12 @@ export default defineConfig({
   preview: {
     host: "0.0.0.0",
     port: 4173,
+    // Serves build.outDir (pages/) after `npm run build`
     allowedHosts: allowAllHosts ? true : defaultAllowedHosts,
   },
   build: {
-    outDir: "dist",
+    // Static site output — GitHub Actions deploys this folder to Pages
+    outDir: "pages",
     emptyOutDir: true,
   },
 });

@@ -38,7 +38,10 @@ This is satire tooling. Do not use it to impersonate real outlets for fraud, har
 │       ├── article.md        # YAML frontmatter + Markdown body
 │       └── assets/           # images, optional
 ├── src/                      # React SPA
-├── public/
+├── public/                   # static files → copied into pages/ on build
+├── pages/                    # build output (gitignored; GitHub Pages deploy)
+├── .github/workflows/
+│   └── deploy-pages.yml      # build pages/ + deploy
 └── skill/
     └── satire-news-article-generator/
         └── SKILL.md
@@ -86,11 +89,18 @@ Note: default API port is **8787** (8765 is often taken by other projects on thi
 ## Build / deploy (GitHub Pages)
 
 ```bash
-npm run build         # writes dist/ (SPA + snapshot of articles)
-# Deploy dist/ to GitHub Pages (Actions or gh-pages branch)
+npm run build         # articles snapshot + Vite → pages/
+npm run preview       # serve pages/ locally
 ```
 
-`vite` prebuilds article JSON into the static bundle so Pages needs no backend.
+| Path | Role |
+|------|------|
+| `pages/` | Production static site (**gitignored**; CI artifact) |
+| `public/` | Files copied into `pages/` (favicon, CNAME, `.nojekyll`) |
+| `.github/workflows/deploy-pages.yml` | On push to `main`: build → deploy `pages/` |
+
+Repo **Settings → Pages → Source: GitHub Actions** (not “Deploy from a branch”).  
+`vite` snapshots articles into the static bundle so Pages needs no Python API.
 
 ## Conventions for agents
 
