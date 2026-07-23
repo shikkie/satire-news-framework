@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Rebuild docs/ (GitHub Pages site) when commit touches site sources.
+# Skip: SKIP_DOCS_BUILD=1 git commit ...   or   git commit --no-verify
+
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$ROOT"
+
+if [[ "${SKIP_DOCS_BUILD:-}" == "1" || "${SKIP_DOCS_BUILD:-}" == "true" ]]; then
+  echo "[pre-commit] SKIP_DOCS_BUILD set — skipping npm run build"
+  exit 0
+fi
+
+# Only rebuild when something that affects the static site is staged
+if ! git diff --cached --name-only --diff-filter=ACMRD | grep -qE \
+  '^(articles/|src/|public/|index\.html|package\.json|package-lock\.json|vite\.config\.|scripts/build-articles)'; then
+  exit 0
+fi
+
+# Avoid re-entry if the only staged changes under docs/ came from a previous hook run
+# (still rebuild when sources change)
+
+if [[ ! -d node_modules ]]; then
+  echo "[pre-commit] node_modules missing — run npm install first" >&2
+  exit 1
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "[pre-commit] npm not found on PATH" >&2
+  exit 1
+fi
+
+echo "[pre-commit] Site sources staged — running npm run build → docs/"
+npm run build
+
+if [[ ! -f docs/index.html ]]; then
+  echo "[pre-commit] build finished but docs/index.html is missing" >&2
+  exit 1
+fi
+
+git add docs/
+echo "[pre-commit] docs/ staged for this commit"

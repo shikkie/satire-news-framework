@@ -8,7 +8,9 @@
     "articles:build": "node scripts/build-articles.mjs",
     "build": "npm run articles:build && vite build",
     "build:docs": "npm run build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "hooks:install": "bash scripts/install-git-hooks.sh",
+    "prepare": "bash scripts/install-git-hooks.sh"
   },
   "dependencies": {
     "react": "^19.1.0",

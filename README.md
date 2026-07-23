@@ -100,15 +100,27 @@ There is **no** native “serve `/pages`” option. So this project builds into 
 | Branch | **`main`** |
 | Folder | **`/docs`** |
 
-Publish:
+Publish (usually automatic on commit — see below):
 
 ```bash
-npm run build
-git add docs/
-git commit -m "Rebuild site"
+# After npm install, pre-commit rebuilds docs/ when you stage site sources
+git add articles/src/...
+git commit -m "Add story"
 git push
 ```
 
+### Git hooks
+
+```bash
+npm run hooks:install   # or: ./scripts/install-git-hooks.sh
+# also runs on npm install via "prepare"
+```
+
+| Hook | What it does |
+|------|----------------|
+| **pre-commit** | If the commit stages `articles/`, `src/`, `public/`, etc. → runs `npm run build` and stages `docs/` |
+
+Skip once: `SKIP_DOCS_BUILD=1 git commit ...` or `git commit --no-verify`.
 Custom domain: `public/CNAME` is **agentnews.site** (copied into `docs/` on build).
 
 Local check: `npm run build && npm run preview` → http://127.0.0.1:4173

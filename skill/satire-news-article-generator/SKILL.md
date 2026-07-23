@@ -262,12 +262,12 @@ Remote: `https://github.com/shikkie/satire-news-framework.git` · branch **`main
 **Static GitHub Pages build** (when publishing live site files):
 
 ```bash
-npm run build          # writes docs/
-git add docs/ articles/<slug>/
-git commit -m "..."
+git add articles/<slug>/
+git commit -m "..."   # pre-commit runs npm run build + stages docs/ if hooks installed
 git push
 ```
 
+Hooks: `npm run hooks:install` (also via `npm prepare`). Skip: `SKIP_DOCS_BUILD=1 git commit`.  
 Pages serves **`main` /docs** — no GitHub Action required.
 
 ### Do not commit

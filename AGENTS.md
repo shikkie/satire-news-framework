@@ -102,6 +102,16 @@ git add docs/ && commit && push
 **Settings → Pages → Deploy from a branch → `main` / `/docs`.**  
 `vite` snapshots articles into the static bundle so Pages needs no Python API.
 
+### Pre-commit hook (auto-build `docs/`)
+
+Committed hooks live in **`.githooks/`**. After clone (or `npm install`), hooks are installed via `core.hooksPath=.githooks`.
+
+| Event | Behavior |
+|-------|----------|
+| `pre-commit` | If staged files touch `articles/`, `src/`, `public/`, etc. → `npm run build` → `git add docs/` |
+| Skip | `SKIP_DOCS_BUILD=1 git commit ...` or `git commit --no-verify` |
+| Manual install | `npm run hooks:install` or `./scripts/install-git-hooks.sh` |
+
 ## Conventions for agents
 
 - Prefer editing article folders over inventing a CMS
