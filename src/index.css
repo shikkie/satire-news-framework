@@ -267,6 +267,55 @@ code {
   color: var(--ink-soft);
 }
 
+/* Share chrome (copy link first; more networks later) */
+.share-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0.25rem;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(20, 32, 51, 0.04);
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.share-btn:hover {
+  border-color: #b8ad98;
+  background: #fffdf8;
+  color: var(--accent);
+}
+
+.share-btn:focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+.share-btn-copy.is-copied {
+  background: #e8f2ea;
+  border-color: #8fb89a;
+  color: #1a4d2e;
+}
+
+.share-btn-icon {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
 .story {
   background: var(--paper-2);
   border: 1px solid var(--rule);
