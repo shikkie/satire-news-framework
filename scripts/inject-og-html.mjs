@@ -98,10 +98,9 @@ function socialHead({
   return lines.join("\n    ");
 }
 
-const HOME_TITLE = "Agent News — All the News That's Fit to Print";
+const HOME_TITLE = "Agent News — All the News That's Fit to Tokenize";
 const HOME_DESCRIPTION =
-  "Agent News (agentnews.site) — all the news that's fit to print. Deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense. Not a real news organization.";
-
+  "Agent News (agentnews.site) — all the news that's fit to tokenize. Deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense. Not a real news organization.";
 
 /** Absolute asset paths so /article/slug/ pages load JS/CSS from site root */
 function absolutizeAssetHrefs(html) {
@@ -172,11 +171,10 @@ function main() {
     type: "website",
     imageWidth: homeImageW,
     imageHeight: homeImageH,
-    imageAlt: "Agent News masthead — satirical newspaper",
+    imageAlt: "Agent News — robotic raccoon newsman; all the news that's fit to tokenize",
   });
   fs.writeFileSync(indexPath, injectHead(shell, homeMeta));
   console.log(`OG home → ${path.relative(root, indexPath)} image=${homeImage}`);
-
   // SPA fallback for unknown paths (GitHub Pages)
   fs.writeFileSync(path.join(docsDir, "404.html"), injectHead(shell, homeMeta));
   console.log("Wrote docs/404.html (SPA fallback)");

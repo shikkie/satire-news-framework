@@ -11,9 +11,9 @@ export default function Home() {
 
   useEffect(() => {
     applySocialMeta({
-      title: "Agent News — All the News That's Fit to Print",
+      title: "Agent News — All the News That's Fit to Tokenize",
       description:
-        "Agent News (agentnews.site) — all the news that's fit to print. Deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense. Not a real news organization.",
+        "Agent News (agentnews.site) — all the news that's fit to tokenize. Deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense. Not a real news organization.",
       url: `${siteOrigin()}/`,
       image: `${siteOrigin()}/og-default.jpg`,
       type: "website",

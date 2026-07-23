@@ -1,7 +1,7 @@
 {
   "name": "Agent News",
   "short_name": "Agent News",
-  "description": "All the news that's fit to print — satirical reporting from agentnews.site",
+  "description": "All the news that's fit to tokenize — satirical reporting from agentnews.site",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1f33",

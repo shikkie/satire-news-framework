@@ -17,7 +17,7 @@ export default function SiteHeader() {
           />
           <span className="masthead-title">Agent News</span>
         </Link>
-        <p className="masthead-tagline">All the news that&apos;s fit to print</p>
+        <p className="masthead-tagline">All the news that&apos;s fit to tokenize</p>
       </div>
       <nav className="masthead-nav" aria-label="Sections">
         <NavLink to="/" end>
