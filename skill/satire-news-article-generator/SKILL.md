@@ -264,6 +264,7 @@ title: "Punchy satirical headline"
 dek: "One-line deck that sharpens the joke"
 author: "Fictional byline"
 date: "YYYY-MM-DD"
+published: "YYYY-MM-DDTHH:MM:SSZ"   # optional; precise homepage order
 section: "Local"
 hero: "assets/hero-<topic>.jpg"
 tags: ["tag1", "tag2"]
@@ -275,11 +276,14 @@ tags: ["tag1", "tag2"]
 | `title` | yes | Quoted string |
 | `dek` | recommended | One sentence |
 | `author` | yes | Fictional; outlet is **Agent News** |
-| `date` | yes | ISO `YYYY-MM-DD` (homepage sorts newest first) |
+| `date` | yes | ISO `YYYY-MM-DD` (display + sort) |
+| `published` | optional | Full ISO datetime; preferred for homepage order when several stories share a calendar day |
 | `section` | yes | `Local` \| `Politics` \| `Business` \| `Tech` \| `Culture` \| `Opinion` \| `World` |
 | `hero` | if illustrated | **Still image only** `assets/<file>.jpg` (used for Discord/OG card) |
 | `tags` | optional | `[a, b]` |
 | `disclaimer` | no | Ignored in UI |
+
+**Homepage order:** `published` → `date` → git commit time on the article folder (else `article.md` mtime). Prefer setting `published` when shipping multiple same-day queue stories.
 
 Tiny YAML only (no nested objects).
 

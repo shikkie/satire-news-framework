@@ -17,6 +17,7 @@ import json
 import mimetypes
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -88,7 +89,51 @@ def parse_article_md(path: Path) -> dict | None:
     return {"meta": meta, "body": body}
 
 
+def _primary_sort_ms(meta: dict) -> float:
+    """Milliseconds for published ISO or date-only frontmatter (newest first)."""
+    pub = str(meta.get("published") or "").strip()
+    if pub:
+        try:
+            # Support trailing Z
+            return datetime.fromisoformat(pub.replace("Z", "+00:00")).timestamp() * 1000
+        except ValueError:
+            pass
+    d = str(meta.get("date") or "").strip()
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", d):
+        try:
+            return (
+                datetime(int(d[0:4]), int(d[5:7]), int(d[8:10]), tzinfo=timezone.utc)
+                .timestamp()
+                * 1000
+            )
+        except ValueError:
+            pass
+    return 0.0
+
+
+def _recency_ms(folder: Path, md: Path) -> float:
+    """Git last-commit time on the article folder, else article.md mtime."""
+    try:
+        out = subprocess.check_output(
+            ["git", "log", "-1", "--format=%ct", "--", str(folder)],
+            cwd=ROOT,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        if out:
+            sec = float(out)
+            if sec > 0:
+                return sec * 1000
+    except (subprocess.CalledProcessError, OSError, ValueError):
+        pass
+    try:
+        return md.stat().st_mtime * 1000
+    except OSError:
+        return 0.0
+
+
 def list_articles() -> list[dict]:
+    """List articles newest-first: published → date → git/mtime recency."""
     items: list[dict] = []
     if not ARTICLES_DIR.is_dir():
         return items
@@ -110,13 +155,25 @@ def list_articles() -> list[dict]:
                 "dek": meta.get("dek") or "",
                 "author": meta.get("author") or "Staff",
                 "date": meta.get("date") or "",
+                "published": meta.get("published") or "",
                 "section": meta.get("section") or "News",
                 "hero": meta.get("hero") or "",
                 "tags": meta.get("tags") or [],
                 "disclaimer": meta.get("disclaimer", True),
+                "_sort_primary": _primary_sort_ms(meta),
+                "_sort_recency": _recency_ms(folder, md),
             }
         )
-    items.sort(key=lambda a: a.get("date") or "", reverse=True)
+    items.sort(
+        key=lambda a: (
+            -a.get("_sort_primary", 0),
+            -a.get("_sort_recency", 0),
+            a.get("slug") or "",
+        )
+    )
+    for a in items:
+        a.pop("_sort_primary", None)
+        a.pop("_sort_recency", None)
     return items
 
 
@@ -135,6 +192,7 @@ def get_article(slug: str) -> dict | None:
         "dek": meta.get("dek") or "",
         "author": meta.get("author") or "Staff",
         "date": meta.get("date") or "",
+        "published": meta.get("published") or "",
         "section": meta.get("section") or "News",
         "hero": meta.get("hero") or "",
         "tags": meta.get("tags") or [],

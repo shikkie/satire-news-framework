@@ -60,7 +60,8 @@ Each `articles/<slug>/article.md` uses YAML frontmatter:
 title: "Headline goes here"
 dek: "Optional subhead / deck"
 author: "Byline name"
-date: "2026-07-20"          # ISO date preferred
+date: "2026-07-20"          # ISO date preferred (display + sort)
+published: "2026-07-20T18:30:00Z"  # optional ISO datetime for precise homepage order
 section: "Local"             # Local | Politics | Business | Tech | Culture | Opinion | World
 hero: "assets/hero.jpg"      # optional, relative to article folder
 tags: ["local", "example"]
@@ -70,6 +71,8 @@ Markdown body with **bold**, lists, blockquotes, etc.
 ```
 
 Slug = folder name (URL-safe, lowercase, hyphens).
+
+**Homepage sort (newest first):** optional `published` (ISO datetime) → frontmatter `date` → git last-commit time on `articles/<slug>/` (else `article.md` mtime). Same calendar day no longer relies on slug order. Shared by `scripts/build-articles.mjs` and `preview/server.py`.
 
 Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers in article bodies or per-story UI chips.
 
