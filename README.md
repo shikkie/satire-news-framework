@@ -151,9 +151,13 @@ full multi-line pitch here
 EOF
 
 ./scripts/create-article.sh --dry-run "..."   # print prompt only
+
+# drain open GitHub issues labeled article-request (oldest first)
+./scripts/create-article.sh --issues
+./scripts/create-article.sh --issues --limit 1
 ```
 
-Runs **grok** headless in this repo (`--cwd`), auto-approves tools, and tells the agent to follow the article skill. Requires `grok` on `PATH` (or set `GROK_BIN`).
+Runs **grok** headless in this repo (`--cwd`), auto-approves tools, and tells the agent to follow the article skill. Requires `grok` on `PATH` (or set `GROK_BIN`). `--issues` also needs authenticated `gh` + `jq`.
 
 Typical loop:
 

@@ -127,7 +127,7 @@ Committed hooks live in **`.githooks/`**. After clone (or `npm install`), hooks 
 
 - Prefer editing article folders over inventing a CMS
 - **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (stills via `image_gen`/`image_edit` only; **never** call video tools — for video give the user an Imagine prompt and wait for their `.mp4`; `hero:` still only; curl → 200; pre-commit rebuilds `docs/`)
-- **Scripted article jobs:** `./scripts/create-article.sh "brief..."` (or `--file` / stdin) runs headless `grok` with `--cwd` set to this repo
+- **Scripted article jobs:** `./scripts/create-article.sh "brief..."` (or `--file` / stdin) runs headless `grok` with `--cwd` set to this repo; `./scripts/create-article.sh --issues` drains open GitHub issues labeled `article-request` (oldest first; optional `--limit N`)
 - **New ads / fake businesses:** follow `skill/satire-business-ad-generator/SKILL.md` (`ads/<slug>/business.md` + assets; rotation on home + articles)
 - Keep the SPA dependency-light (React + markdown renderer only)
 - Do not commit secrets; no API keys required for core preview

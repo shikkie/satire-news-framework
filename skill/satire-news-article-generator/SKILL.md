@@ -69,11 +69,16 @@ From any directory:
 multi-line brief...
 EOF
 
+# process open GitHub issues labeled article-request (oldest first)
+./scripts/create-article.sh --issues
+./scripts/create-article.sh --issues --limit 1   # oldest only
+
 # preview composed prompt only
 ./scripts/create-article.sh --dry-run "brief..."
+./scripts/create-article.sh --issues --dry-run
 ```
 
-The script `cd`s/`--cwd`s to the repo root, wraps **grok** headless (`--prompt-file`, `--always-approve`), and injects instructions to follow this skill. Env: `GROK_BIN`, `GROK_MODEL`, `SKIP_YOLO=1`.
+The script `cd`s/`--cwd`s to the repo root, wraps **grok** headless (`--prompt-file`, `--always-approve`), and injects instructions to follow this skill. With `--issues`, it lists open issues via `gh`, runs one Grok job per issue (oldest first), and injects `Closes #N` commit instructions. Env: `GROK_BIN`, `GROK_MODEL`, `ARTICLE_ISSUE_LABEL` (default `article-request`), `SKIP_YOLO=1`.
 
 ---
 
