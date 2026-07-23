@@ -65,6 +65,11 @@ while [[ $# -gt 0 ]]; do
       PROMPT_FILE="$2"
       shift 2
       ;;
+    -)
+      # stdin marker (not an option flag)
+      POSITIONAL+=("$1")
+      shift
+      ;;
     --) shift; POSITIONAL+=("$@"); break ;;
     -*)
       die "unknown option: $1 (try --help)"
