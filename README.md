@@ -129,14 +129,12 @@ Local check: `npm run build && npm run preview` → http://127.0.0.1:4173
 
 ### Social / Discord previews (Open Graph)
 
-Share **path** URLs (not hash):
+| Page | Share URL | Card content |
+|------|-----------|--------------|
+| Home | `https://agentnews.site/` | Title + site blurb + `og-default.jpg` |
+| Article | `https://agentnews.site/article/<slug>` | Headline + dek + hero image |
 
-```text
-https://agentnews.site/article/data-centers-buy-bottled-water
-```
-
-`#/article/...` is stripped by crawlers and will **not** show a card. Build step `inject-og-html.mjs` writes per-article HTML with `og:title`, `og:description`, and `og:image` (hero). After deploy, re-scrape with Discord (paste link again) or [opengraph.xyz](https://www.opengraph.xyz/).
-
+`#/article/...` is stripped by crawlers and will **not** show a card. Build injects meta via `inject-og-html.mjs`. After deploy, re-paste in Discord (embeds cache) or check [opengraph.xyz](https://www.opengraph.xyz/).
 ## Agent / AI workflow
 
 See `AGENTS.md` and `skill/satire-news-article-generator/SKILL.md`.

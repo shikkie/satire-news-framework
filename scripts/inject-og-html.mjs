@@ -48,15 +48,27 @@ function stripSocialMeta(html) {
     .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, "");
 }
 
-function socialHead({ title, description, url, image, type = "website", section }) {
+function socialHead({
+  title,
+  description,
+  url,
+  image,
+  type = "website",
+  section,
+  imageWidth,
+  imageHeight,
+  imageAlt,
+}) {
   const t = esc(title);
   const d = esc(description || title);
   const u = esc(url);
   const img = esc(image);
+  const alt = esc(imageAlt || title);
   const lines = [
     `<title>${t}</title>`,
     `<meta name="description" content="${d}" />`,
     `<link rel="canonical" href="${u}" />`,
+    `<meta property="og:locale" content="en_US" />`,
     `<meta property="og:type" content="${esc(type)}" />`,
     `<meta property="og:site_name" content="Agent News" />`,
     `<meta property="og:title" content="${t}" />`,
@@ -64,17 +76,32 @@ function socialHead({ title, description, url, image, type = "website", section 
     `<meta property="og:url" content="${u}" />`,
     `<meta property="og:image" content="${img}" />`,
     `<meta property="og:image:secure_url" content="${img}" />`,
-    `<meta property="og:image:alt" content="${t}" />`,
+    `<meta property="og:image:type" content="image/jpeg" />`,
+    `<meta property="og:image:alt" content="${alt}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${t}" />`,
     `<meta name="twitter:description" content="${d}" />`,
     `<meta name="twitter:image" content="${img}" />`,
+    `<meta name="twitter:image:alt" content="${alt}" />`,
   ];
+  if (imageWidth) {
+    lines.push(`<meta property="og:image:width" content="${esc(String(imageWidth))}" />`);
+  }
+  if (imageHeight) {
+    lines.push(
+      `<meta property="og:image:height" content="${esc(String(imageHeight))}" />`
+    );
+  }
   if (type === "article" && section) {
     lines.push(`<meta property="article:section" content="${esc(section)}" />`);
   }
   return lines.join("\n    ");
 }
+
+const HOME_TITLE = "Agent News — Satirical News & Fake Headlines";
+const HOME_DESCRIPTION =
+  "Agent News (agentnews.site) publishes deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense with the layout of a real paper. Not a real news organization.";
+
 
 /** Absolute asset paths so /article/slug/ pages load JS/CSS from site root */
 function absolutizeAssetHrefs(html) {
@@ -109,16 +136,43 @@ function main() {
   const shell = fs.readFileSync(indexPath, "utf8");
   const { articles = [] } = JSON.parse(fs.readFileSync(dataPath, "utf8"));
 
+  // Prefer dedicated share card; fall back to newest article hero with image
+  const ogDefault = path.join(docsDir, "og-default.jpg");
+  let homeImage = `${SITE}/og-default.jpg`;
+  let homeImageW = 1280;
+  let homeImageH = 720;
+  if (!fs.existsSync(ogDefault)) {
+    const withHero = articles.find((a) => a.hero);
+    if (withHero) {
+      homeImage = heroAbsUrl(withHero);
+    } else {
+      homeImage = `${SITE}/favicon.svg`;
+      homeImageW = undefined;
+      homeImageH = undefined;
+    }
+  }
+
+  const topHeadlines = articles
+    .slice(0, 3)
+    .map((a) => a.title)
+    .filter(Boolean);
+  const homeDesc =
+    topHeadlines.length > 0
+      ? `${HOME_DESCRIPTION} Latest: ${topHeadlines.join(" · ")}`.slice(0, 300)
+      : HOME_DESCRIPTION;
+
   const homeMeta = socialHead({
-    title: "Agent News",
-    description:
-      "Agent News — satirical reporting from agentnews.site. Headlines, investigations, and invented urgency.",
+    title: HOME_TITLE,
+    description: homeDesc,
     url: `${SITE}/`,
-    image: `${SITE}/favicon.svg`,
+    image: homeImage,
     type: "website",
+    imageWidth: homeImageW,
+    imageHeight: homeImageH,
+    imageAlt: "Agent News masthead — satirical newspaper",
   });
   fs.writeFileSync(indexPath, injectHead(shell, homeMeta));
-  console.log(`OG home → ${path.relative(root, indexPath)}`);
+  console.log(`OG home → ${path.relative(root, indexPath)} image=${homeImage}`);
 
   // SPA fallback for unknown paths (GitHub Pages)
   fs.writeFileSync(path.join(docsDir, "404.html"), injectHead(shell, homeMeta));

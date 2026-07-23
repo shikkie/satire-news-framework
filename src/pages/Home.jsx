@@ -11,11 +11,11 @@ export default function Home() {
 
   useEffect(() => {
     applySocialMeta({
-      title: "Agent News",
+      title: "Agent News — Satirical News & Fake Headlines",
       description:
-        "Agent News — satirical reporting from agentnews.site. Headlines, investigations, and invented urgency.",
+        "Agent News (agentnews.site) publishes deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense. Not a real news organization.",
       url: `${siteOrigin()}/`,
-      image: `${siteOrigin()}/favicon.svg`,
+      image: `${siteOrigin()}/og-default.jpg`,
       type: "website",
     });
   }, []);
