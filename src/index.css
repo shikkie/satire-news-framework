@@ -331,6 +331,66 @@ code {
   padding-left: 1.3rem;
 }
 
+/* GFM markdown tables — readable without shouting */
+.prose table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0 1.5rem;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  box-shadow: 0 1px 0 rgba(20, 32, 51, 0.03);
+}
+
+.prose thead th {
+  background: var(--banner);
+  color: #f4efe4;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-align: left;
+  vertical-align: bottom;
+  border: 1px solid #0a1a2c;
+  border-bottom: 2px solid #061018;
+  padding: 0.65rem 0.8rem;
+}
+
+.prose tbody td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #e0d8c8;
+}
+
+.prose tbody tr:nth-child(odd) {
+  background: var(--paper-2);
+}
+
+.prose tbody tr:nth-child(even) {
+  background: rgba(20, 32, 51, 0.045);
+}
+
+.prose tbody tr:hover {
+  background: rgba(155, 28, 28, 0.045);
+}
+
+/* Wide tables scroll horizontally inside the article column */
+.prose .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 1.25rem 0 1.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose .table-wrap table {
+  margin: 0;
+  min-width: min(100%, 28rem);
+}
+
 .prose .story-inline-figure {
   margin: 1.25rem 0 1.5rem;
   max-width: 100%;

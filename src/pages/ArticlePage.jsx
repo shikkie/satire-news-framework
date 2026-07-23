@@ -99,6 +99,11 @@ export default function ArticlePage() {
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
+            table: ({ children, ...rest }) => (
+              <div className="table-wrap">
+                <table {...rest}>{children}</table>
+              </div>
+            ),
             img: ({ src = "", alt = "", ...rest }) => {
               const resolved = inlineImageSrc(article, src);
               if (isVideoSrc(src) || isVideoSrc(resolved)) {
