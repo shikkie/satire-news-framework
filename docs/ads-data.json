@@ -1,6 +1,40 @@
 {
-  "generatedAt": "2026-07-23T06:27:08.201Z",
+  "generatedAt": "2026-07-23T06:36:55.566Z",
   "ads": [
+    {
+      "slug": "budd-light-totally-straight",
+      "name": "Budd Light — Totally Straight™",
+      "tagline": "Beer for people who only turn left at stop signs if the GPS insists.",
+      "phone": "(314) 555-STR8",
+      "email": "straight@buddlight.example",
+      "website": "https://buddlight.example",
+      "address": "Straight Line Brewery Campus, St. Louis, MO",
+      "hours": "Always on · Never at brunch",
+      "category": "Dining",
+      "cta": "Find Totally Straight near you",
+      "logo": "assets/logo.jpg",
+      "image": "assets/hero.jpg",
+      "weight": 1,
+      "active": true,
+      "bio": "After extensive market research conducted entirely in group chats, **Budd Light** proudly presents the **Totally Straight™** campaign: same light beer, aggressively heterosexual packaging, and a Super Bowl spot where a man high-fives a truck for forty-five seconds.\n\nFeatures include a can that only opens in a straight line, a “No Rainbow Foam” guarantee, and free foam fingers that point exclusively forward. Available wherever awkward overcorrections are sold. Drink responsibly. Define yourself in the comments. We already regret the focus groups."
+    },
+    {
+      "slug": "eternaguard-life-insurance",
+      "name": "EternaGuard Life Insurance",
+      "tagline": "Because death is just a pre-existing condition we already priced in.",
+      "phone": "(800) 555-LIVE",
+      "email": "claims@eternaguard.example",
+      "website": "https://eternaguard.example",
+      "address": "1 Actuarial Plaza, Floor 40, Seattle, WA",
+      "hours": "Mon–Fri 8am–6pm · Claims never sleep",
+      "category": "Health",
+      "cta": "Get a quote before it’s too late",
+      "logo": "assets/logo.jpg",
+      "image": "assets/hero.jpg",
+      "weight": 1,
+      "active": true,
+      "bio": "**EternaGuard** has been monetizing mortality since your grandparents still trusted paperwork. Term, whole, “vibes-linked variable,” and our exclusive **Aftercare Rider** that pays your heirs in gift cards if you die during a group chat argument.\n\nOur agents smile with their eyes, never their deductible. Free online calculator estimates how long you have left based on zip code, step count, and whether you still reply “sounds good.” Not FDIC insured. Not fun at parties. Call now — hesitation is a rating factor."
+    },
     {
       "slug": "forever-paws-pet-crematory",
       "name": "Forever Paws Pet Memorial & Crematory",
@@ -34,6 +68,23 @@
       "weight": 1,
       "active": true,
       "bio": "Family-owned since last week, **Splat & Sizzle** serves “highway-fresh” smoked plates with a side of denial and sweet tea that could strip paint. Our pitmasters pride themselves on a nose-to-tail philosophy — especially when the tail was still attached at the shoulder of the road.\n\nAsk about the **Daily Flattened** board. Catering available for reunions, divorces, and HOA meetings that have gone too long. Not affiliated with any Department of Transportation cleanup crew (they wish)."
+    },
+    {
+      "slug": "tiny-paws-junior-costumes",
+      "name": "TinyPaws Junior Costume Co.",
+      "tagline": "Professional-grade critter suits — finally in child sizes.",
+      "phone": "(206) 555-PAWS",
+      "email": "hello@tinypawsjunior.example",
+      "website": "https://tinypawsjunior.example",
+      "address": "2200 Soft Serve Ave, Unit C, Seattle, WA",
+      "hours": "Tue–Sat 11am–7pm · Sun by appointment",
+      "category": "Retail",
+      "cta": "Shop junior suit sizes",
+      "logo": "assets/logo.jpg",
+      "image": "assets/hero.jpg",
+      "weight": 1,
+      "active": true,
+      "bio": "**TinyPaws Junior** outfits school plays, birthday mascots, and extremely committed Halloween households with **child-size animal costumes** that zip, breathe, and survive juice boxes. Fox, wolf, dragon, and “emotionally complex raccoon” — sizes XS–Youth L, with reinforced knees for recess.\n\nIn-store fittings include a tail balance lesson and a firm talk about not wearing the head at the dinner table. Parents: we do foam, fleece, and washable claws. We do not do adult convention pricing. Book a birthday appearance package before the waitlist becomes a pack."
     }
   ]
 }
