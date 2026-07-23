@@ -44,7 +44,7 @@ Rivera recommended “enrichment, scheduled meals, and maybe a second spoon of C
 
 ### Exclusive interview: Cheddar speaks (toddler voice)
 
-Agent News conducted a brief interview with Cheddar using a studio translator who rendered his testimony into an **adorable toddler voice**. Video generation facilities were unavailable at press time; a still from the session is below, with transcript certified by three people who coo at animals for a living.
+Agent News sat Cheddar in front of a soft light and a toy mic. A studio translator rendered his testimony into an **adorable toddler voice**. Still from the session:
 
 ![Cheddar during his interview — soft blinks, hard allegations.](assets/kitten-interview-still.jpg)
 

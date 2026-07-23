@@ -2,15 +2,16 @@
 name: satire-news-article-generator
 description: >
   Create Agent News (agentnews.site) satirical articles with multiple Grok Imagine
-  images and/or videos: article.md layout, REAL assets on disk, markdown embeds,
-  local verify, then commit/push (pre-commit rebuilds docs/ for GitHub Pages).
+  stills: article.md layout, REAL assets on disk, markdown embeds, local verify,
+  commit/push. For video: NEVER call image_to_video — give the user an Imagine
+  prompt; they return the .mp4 to wire into the story.
 ---
 
 # Satire News Article Generator
 
 ## When to use
 
-Use this skill whenever the user wants a **new satirical article**, **one or more images**, **video clips** (via Grok Imagine), **browser page previews**, or to **publish** so it appears on local preview and (after push) GitHub Pages.
+Use this skill whenever the user wants a **new satirical article**, **one or more images**, **browser page previews**, or to **publish**. For **video**, do **not** generate it in-session — hand the user a ready Imagine prompt and wait for their file.
 
 Repo root:
 
@@ -40,17 +41,16 @@ Slug = folder name: lowercase, hyphens only, unique, stable forever.
 Frontmatter + body (schema below). Outlet name: **Agent News**.  
 **Do not** add “this is satire” kickers — the site has one top banner.
 
-### 3. Add media with Grok Imagine (multiple images and/or video)
+### 3. Add media (stills in-session; video via user + prompt)
 
-Default to **several** editorial images for an illustrated story (not just a hero). Add **video** when motion helps (protests, machine loops, wildlife, “breaking news” B-roll).
+Default to **several** editorial images for an illustrated story (not just a hero).
 
-Follow **§ Media production (Grok Imagine)** below. Summary:
-
-1. Generate images with `image_gen` / `image_edit` (load Imagine skill when calling tools).
-2. Generate video with `image_to_video` (or `reference_to_video` when 2–7 stills guide the shot) after a strong still exists.
-3. **Copy** every binary into `articles/<slug>/assets/` with final kebab-case names.
-4. Session dirs (`~/.grok/sessions/.../images|videos/`) are **not** served — always copy.
-5. Wire paths: `hero:` (still image for OG) + body `![](assets/...)` for images **and** videos.
+1. Generate **stills** with `image_gen` / `image_edit` only (load Imagine skill for images).
+2. **Do not** call `image_to_video`, `reference_to_video`, or any video tool.
+3. If the user wants video (or a clip would help): follow **§ Video (user-provided only)** — give them a copy-paste Imagine prompt + which still to animate; stop and wait for their `.mp4`.
+4. **Copy** every binary into `articles/<slug>/assets/` with final kebab-case names.
+5. Session dirs (`~/.grok/sessions/.../images/`) are **not** served — always copy.
+6. Wire paths: `hero:` (still for OG) + body `![](assets/...)` for images; after user supplies video, `![](assets/<clip>.mp4)`.
 
 ### 4. Verify on disk + local preview API
 
