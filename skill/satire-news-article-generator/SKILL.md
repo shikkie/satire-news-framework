@@ -4,7 +4,8 @@ description: >
   Create Agent News (agentnews.site) satirical articles with multiple Grok Imagine
   stills: article.md layout, REAL assets on disk, markdown embeds, local verify,
   commit/push. For video: NEVER call image_to_video — give the user an Imagine
-  prompt; they return the .mp4 to wire into the story.
+  prompt; they return the .mp4 to wire into the story. Also processes open
+  GitHub issues labeled article-request as work queue.
 ---
 
 # Satire News Article Generator
@@ -20,6 +21,27 @@ satire-news-framework/
 ```
 
 Publication: **Agent News** · **https://agentnews.site**
+
+### Preferred trigger: open GitHub issues (CLI / agent work queue)
+
+The standard way to hand work to the Grok CLI (or any agent following this skill) is via **GitHub Issues**.
+
+1. Look for **open** issues that have the label **`article-request`**.
+2. The issue body contains a structured brief (title idea, premise, image guidance, etc.) using the repo’s issue template.
+3. When you pick one up:
+   - Comment on the issue that you are claiming it (or assign yourself).
+   - Follow this skill end-to-end to produce the full article + assets.
+   - Commit + push.
+   - Close the issue with a short comment that includes the live link:  
+     `https://agentnews.site/article/<slug>`
+
+**How humans (or upstream agents) file work**
+
+- Use the “Article Request” issue template (`.github/ISSUE_TEMPLATE/article-request.md`).
+- Fill in the brief fields (headline idea, slug, premise, image roles, etc.).
+- The template automatically applies the `article-request` label.
+
+This keeps a clean, visible queue of pending stories that the CLI can poll or be pointed at.
 
 ### Trigger via script (optional)
 
@@ -407,6 +429,7 @@ Naming: kebab-case. Prefer `.jpg` for stills, `.mp4` for video.
 [ ] git add articles/<slug>/ (binaries included)
 [ ] git commit + git push origin main
 [ ] Confirm docs/ updated for Pages
+[ ] If this came from a GitHub issue: close the issue with the live article link
 ```
 
 ### Minimum
