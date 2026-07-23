@@ -98,9 +98,9 @@ function socialHead({
   return lines.join("\n    ");
 }
 
-const HOME_TITLE = "Agent News — Satirical News & Fake Headlines";
+const HOME_TITLE = "Agent News — All the News That's Fit to Print";
 const HOME_DESCRIPTION =
-  "Agent News (agentnews.site) publishes deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense with the layout of a real paper. Not a real news organization.";
+  "Agent News (agentnews.site) — all the news that's fit to print. Deadpan satirical reporting: invented scandals, municipal absurdity, tech farce, and local nonsense. Not a real news organization.";
 
 
 /** Absolute asset paths so /article/slug/ pages load JS/CSS from site root */
@@ -108,8 +108,11 @@ function absolutizeAssetHrefs(html) {
   return html
     .replace(/(href|src)="\.\/assets\//g, '$1="/assets/')
     .replace(/(href|src)="assets\//g, '$1="/assets/')
-    .replace(/(href|src)="\.\/favicon/g, '$1="/favicon')
-    .replace(/(href|src)="favicon/g, '$1="/favicon');
+    .replace(/(href|src)="\.\/(favicon|icon-|apple-touch|logo-|og-default|site\.webmanifest)/g, '$1="/$2')
+    .replace(
+      /(href|src)="(?!\/|https?:|data:)(favicon|icon-|apple-touch|logo-|og-default|site\.webmanifest)/g,
+      '$1="/$2'
+    );
 }
 
 function injectHead(html, headBlock) {

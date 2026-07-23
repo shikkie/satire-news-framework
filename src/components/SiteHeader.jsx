@@ -7,8 +7,15 @@ export default function SiteHeader() {
     <header className="masthead">
       <div className="masthead-top">
         <p className="masthead-kicker">agentnews.site</p>
-        <Link to="/" className="masthead-title">
-          Agent News
+        <Link to="/" className="masthead-brand">
+          <img
+            className="masthead-logo"
+            src="/logo-raccoon-newsman.png"
+            alt=""
+            width={72}
+            height={72}
+          />
+          <span className="masthead-title">Agent News</span>
         </Link>
         <p className="masthead-tagline">All the news that&apos;s fit to print</p>
       </div>
