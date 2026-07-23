@@ -72,11 +72,69 @@ export async function copyTextToClipboard(text) {
   return { ok: false, reason };
 }
 
+function enc(s) {
+  return encodeURIComponent(s ?? "");
+}
+
 /**
- * Share chrome: copy this article's canonical URL.
- * Only copy-link for now; other networks later (issue #5).
+ * Build share targets for known networks.
+ * Mirage.talk has no stable public intent URL — open home + copy draft text.
  */
-export default function CopyArticleLink({ slug }) {
+export function buildShareTargets({ url, title, dek }) {
+  const headline = title || "Agent News";
+  const blurb = dek ? `${headline} — ${dek}` : headline;
+  const textWithUrl = `${blurb}\n\n${url}`;
+
+  return [
+    {
+      id: "x",
+      label: "X",
+      href: `https://twitter.com/intent/tweet?url=${enc(url)}&text=${enc(headline)}`,
+    },
+    {
+      id: "bluesky",
+      label: "Bluesky",
+      href: `https://bsky.app/intent/compose?text=${enc(textWithUrl)}`,
+    },
+    {
+      id: "mirage",
+      label: "Mirage.talk",
+      // No documented public share intent; open site and hand user a ready paste.
+      mode: "copy-and-open",
+      openUrl: "https://mirage.talk/",
+      pasteText: textWithUrl,
+      note:
+        "Mirage.talk does not publish a stable web share intent. " +
+        "We copy the post text (title + link) and open mirage.talk so you can paste.",
+    },
+    {
+      id: "truth",
+      label: "Truth Social",
+      // Official publisher share button: truthsocial.com/share?text=&url=
+      href: `https://truthsocial.com/share?text=${enc(headline)}&url=${enc(url)}`,
+    },
+    {
+      id: "facebook",
+      label: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+    },
+    {
+      id: "reddit",
+      label: "Reddit",
+      href: `https://www.reddit.com/submit?url=${enc(url)}&title=${enc(headline)}`,
+    },
+  ];
+}
+
+function openShareWindow(href) {
+  if (!href) return;
+  window.open(href, "_blank", "noopener,noreferrer");
+}
+
+/**
+ * Article share chrome: copy link + social network openers (issue #5).
+ */
+export default function ArticleShareBar({ slug, title, dek }) {
   const [status, setStatus] = useState("idle"); // idle | copied | error
 
   useEffect(() => {
@@ -88,6 +146,7 @@ export default function CopyArticleLink({ slug }) {
   if (!slug) return null;
 
   const url = articleShareUrl(slug);
+  const targets = buildShareTargets({ url, title, dek });
 
   async function onCopy() {
     const result = await copyTextToClipboard(url);
@@ -104,11 +163,28 @@ export default function CopyArticleLink({ slug }) {
     window.setTimeout(() => setStatus("idle"), 500);
   }
 
-  const label =
+  async function onMirageShare(target) {
+    const result = await copyTextToClipboard(target.pasteText);
+    openShareWindow(target.openUrl);
+    if (result.ok) {
+      window.alert(
+        `${target.note}\n\nPost text was copied to your clipboard. Paste it into Mirage.talk.`
+      );
+      return;
+    }
+    window.alert(
+      `${target.note}\n\n` +
+        (result.reason || "Could not copy automatically.") +
+        "\n\nPaste this manually:\n" +
+        target.pasteText
+    );
+  }
+
+  const copyLabel =
     status === "copied" ? "Copied!" : status === "error" ? "Copy failed" : "Copy link";
 
   return (
-    <div className="share-bar" role="group" aria-label="Share">
+    <div className="share-bar" role="group" aria-label="Share article">
       <button
         type="button"
         className={`share-btn share-btn-copy${status === "copied" ? " is-copied" : ""}`}
@@ -118,8 +194,32 @@ export default function CopyArticleLink({ slug }) {
         <span className="share-btn-icon" aria-hidden="true">
           {status === "copied" ? "✓" : "🔗"}
         </span>
-        {label}
+        {copyLabel}
       </button>
+
+      {targets.map((t) =>
+        t.mode === "copy-and-open" ? (
+          <button
+            key={t.id}
+            type="button"
+            className={`share-btn share-btn-net share-btn-${t.id}`}
+            onClick={() => onMirageShare(t)}
+            title={t.note}
+          >
+            {t.label}
+          </button>
+        ) : (
+          <a
+            key={t.id}
+            className={`share-btn share-btn-net share-btn-${t.id}`}
+            href={t.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t.label}
+          </a>
+        )
+      )}
     </div>
   );
 }
