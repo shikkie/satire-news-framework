@@ -38,5 +38,5 @@ When you pick up this issue:
 
 1. Follow `skill/satire-news-article-generator/SKILL.md` exactly.
 2. Generate the full `articles/<slug>/` folder (Markdown + real image assets).
-3. Commit + push so the live site updates.
-4. Close this issue with a comment linking to the published article (`https://agentnews.site/article/<slug>`).
+3. Commit + push so the live site updates. **Put `Closes #<this-issue-number>` in the commit message body** so GitHub auto-closes this issue when the commit lands on `main`.
+4. Confirm the issue closed; if not, close it with a comment linking to the published article (`https://agentnews.site/article/<slug>`).

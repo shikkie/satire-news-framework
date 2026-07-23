@@ -31,9 +31,12 @@ The standard way to hand work to the Grok CLI (or any agent following this skill
 3. When you pick one up:
    - Comment on the issue that you are claiming it (or assign yourself).
    - Follow this skill end-to-end to produce the full article + assets.
-   - Commit + push.
-   - Close the issue with a short comment that includes the live link:  
+   - **Commit + push with a closing keyword in the commit message** so GitHub auto-closes the issue when the commit lands on `main`:
+     - Use `Closes #N` (or `Fixes #N` / `Resolves #N`) on its own line in the commit body.
+     - Example: `Closes #12`
+   - After push, leave a short issue comment with the live link (optional if the close comment is enough):  
      `https://agentnews.site/article/<slug>`
+   - If auto-close did not fire (keyword missing, wrong branch, etc.), close the issue manually with that link.
 
 **How humans (or upstream agents) file work**
 
@@ -42,6 +45,15 @@ The standard way to hand work to the Grok CLI (or any agent following this skill
 - The template automatically applies the `article-request` label.
 
 This keeps a clean, visible queue of pending stories that the CLI can poll or be pointed at.
+
+**Process the whole queue**
+
+```bash
+gh issue list --label article-request --state open
+# or: gh api "repos/OWNER/REPO/issues?labels=article-request&state=open"
+```
+
+Pick the oldest open issue first unless the user says otherwise. One article per issue; one `Closes #N` per commit.
 
 ### Trigger via script (optional)
 
@@ -142,15 +154,22 @@ git status
 git add articles/<slug>/
 # include skill/app fixes only if intentional
 
+# If this story came from a GitHub issue, put Closes #N in the commit body
+# so GitHub auto-closes the issue when the commit reaches main.
 git commit -m "$(cat <<'EOF'
 Add satirical article: <slug>
 
 Story + assets under articles/<slug>/ (docs/ rebuilt by pre-commit when hooks are on).
+
+Closes #<issue-number>
 EOF
 )"
 
 git push -u origin HEAD
 ```
+
+After push (issue-sourced work): confirm the issue is closed; if not,  
+`gh issue close <N> --comment "Published: https://agentnews.site/article/<slug>"`.
 
 #### What pre-commit does (if hooks installed)
 
@@ -427,9 +446,9 @@ Naming: kebab-case. Prefer `.jpg` for stills, `.mp4` for video.
 [ ] No satire kickers; no manifest.json
 [ ] Hooks installed or manual npm run build + git add docs/
 [ ] git add articles/<slug>/ (binaries included)
-[ ] git commit + git push origin main
+[ ] git commit with Closes #N in body (when from an issue) + git push origin main
 [ ] Confirm docs/ updated for Pages
-[ ] If this came from a GitHub issue: close the issue with the live article link
+[ ] If from a GitHub issue: issue auto-closed via Closes #N (or close manually with live link)
 ```
 
 ### Minimum
