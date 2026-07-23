@@ -15,7 +15,7 @@ import {
   siteOrigin,
 } from "../lib/socialMeta.js";
 import AdRotation from "../components/AdRotation.jsx";
-import CopyArticleLink from "../components/CopyArticleLink.jsx";
+import ArticleShareBar from "../components/ArticleShareBar.jsx";
 
 export default function ArticlePage() {
   const { slug } = useParams();
@@ -91,7 +91,11 @@ export default function ArticlePage() {
       <p className="byline">
         By <strong>{article.author}</strong>
       </p>
-      <CopyArticleLink slug={article.slug} />
+      <ArticleShareBar
+        slug={article.slug}
+        title={article.title}
+        dek={article.dek}
+      />
       {hero ? (
         <figure className="story-hero">
           <img src={hero} alt="" />

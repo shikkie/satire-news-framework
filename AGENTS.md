@@ -75,6 +75,8 @@ Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers 
 
 **Share URLs** use path routes: `https://agentnews.site/article/<slug>` (not `#/article/...`). Build injects Open Graph HTML under `docs/article/<slug>/` for Discord/social cards.
 
+**Article share bar** (`ArticleShareBar` under the byline): **Copy link** (Clipboard API → `execCommand` → alert with reason + URL on failure) plus intent openers for **X**, **Bluesky**, **Truth Social**, **Facebook**, **Reddit**. **Mirage.talk** has no stable public share intent — button copies title+URL and opens `mirage.talk` for paste. No third-party share SDKs.
+
 ## Dev workflow
 
 ```bash
