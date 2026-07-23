@@ -7,7 +7,7 @@
     "dev": "vite",
     "articles:build": "node scripts/build-articles.mjs",
     "build": "npm run articles:build && vite build",
-    "build:pages": "npm run build",
+    "build:docs": "npm run build",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -259,11 +259,16 @@ git commit -m "..."
 
 Remote: `https://github.com/shikkie/satire-news-framework.git` · branch **`main`**.
 
-**Static Pages build** (only if user asks to deploy SPA):
+**Static GitHub Pages build** (when publishing live site files):
 
 ```bash
-npm run articles:build && npm run build
+npm run build          # writes docs/
+git add docs/ articles/<slug>/
+git commit -m "..."
+git push
 ```
+
+Pages serves **`main` /docs** — no GitHub Action required.
 
 ### Do not commit
 

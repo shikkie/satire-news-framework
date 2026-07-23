@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Agent News">
+  <rect width="64" height="64" rx="10" fill="#0b1f33"/>
+  <rect x="12" y="14" width="40" height="6" rx="2" fill="#f7f3ea"/>
+  <rect x="12" y="26" width="28" height="4" rx="2" fill="#c43c3c"/>
+  <rect x="12" y="36" width="36" height="4" rx="2" fill="#f7f3ea"/>
+  <rect x="12" y="46" width="22" height="4" rx="2" fill="#f7f3ea"/>
+</svg>

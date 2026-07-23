@@ -38,10 +38,8 @@ This is satire tooling. Do not use it to impersonate real outlets for fraud, har
 │       ├── article.md        # YAML frontmatter + Markdown body
 │       └── assets/           # images, optional
 ├── src/                      # React SPA
-├── public/                   # static files → copied into pages/ on build
-├── pages/                    # build output (gitignored; GitHub Pages deploy)
-├── .github/workflows/
-│   └── deploy-pages.yml      # build pages/ + deploy
+├── public/                   # static files → copied into docs/ on build
+├── docs/                     # production site (commit after npm run build)
 └── skill/
     └── satire-news-article-generator/
         └── SKILL.md
@@ -86,20 +84,22 @@ Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers 
 
 Note: default API port is **8787** (8765 is often taken by other projects on this machine).
 
-## Build / deploy (GitHub Pages)
+## Build / deploy (GitHub Pages — no Actions)
+
+GitHub Pages branch deploy only supports **`/`** or **`/docs`** (not a custom `pages/` folder).
 
 ```bash
-npm run build         # articles snapshot + Vite → pages/
-npm run preview       # serve pages/ locally
+npm run build         # articles snapshot + Vite → docs/
+npm run preview       # serve docs/ locally
+git add docs/ && commit && push
 ```
 
 | Path | Role |
 |------|------|
-| `pages/` | Production static site (**gitignored**; CI artifact) |
-| `public/` | Files copied into `pages/` (favicon, CNAME, `.nojekyll`) |
-| `.github/workflows/deploy-pages.yml` | On push to `main`: build → deploy `pages/` |
+| `docs/` | Production static site (**commit this** after build) |
+| `public/` | Source static files copied into `docs/` (favicon, CNAME, `.nojekyll`) |
 
-Repo **Settings → Pages → Source: GitHub Actions** (not “Deploy from a branch”).  
+**Settings → Pages → Deploy from a branch → `main` / `/docs`.**  
 `vite` snapshots articles into the static bundle so Pages needs no Python API.
 
 ## Conventions for agents
