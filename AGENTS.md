@@ -117,7 +117,7 @@ Committed hooks live in **`.githooks/`**. After clone (or `npm install`), hooks 
 ## Conventions for agents
 
 - Prefer editing article folders over inventing a CMS
-- **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (slug, `article.md` only, real files under `assets/`, `hero: assets/…`, body `![](assets/…)`, curl `/content/<slug>/assets/…` → 200, git push binaries)
+- **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (slug, `article.md`, multi-image and optional Imagine video under `assets/`, `hero:` still only, body `![](assets/…)` for images and `.mp4`, curl → 200, commit binaries, pre-commit rebuilds `docs/`)
 - Keep the SPA dependency-light (React + markdown renderer only)
 - Do not commit secrets; no API keys required for core preview
 - When adding sample/demo content, keep it clearly satirical and non-defamatory

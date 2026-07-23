@@ -1,6 +1,7 @@
 node_modules/
 dist/
-pages/
+# Only root-level pages/ build dir (not src/pages/)
+/pages/
 # Snapshot outputs from npm run articles:build (recreated by npm run build)
 public/articles-data.json
 public/content/

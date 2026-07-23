@@ -65,6 +65,14 @@ export function inlineImageSrc(article, src) {
   return resolveContentUrl(article.slug, src);
 }
 
+const VIDEO_EXT = /\.(mp4|webm|ogg|mov)(\?.*)?$/i;
+
+/** True if path/URL looks like a video asset */
+export function isVideoSrc(src) {
+  if (!src) return false;
+  return VIDEO_EXT.test(String(src).trim());
+}
+
 async function loadStaticBundle() {
   try {
     // Absolute path — article URLs live under /article/<slug>/

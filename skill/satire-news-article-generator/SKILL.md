@@ -1,17 +1,16 @@
 ---
 name: satire-news-article-generator
 description: >
-  Create complete Agent News (agentnews.site) satirical articles: folder layout,
-  article.md, REAL assets on disk, local verify, optional browser previews, then
-  commit/push so pre-commit rebuilds docs/ for GitHub Pages. Use when drafting,
-  illustrating, or publishing stories.
+  Create Agent News (agentnews.site) satirical articles with multiple Grok Imagine
+  images and/or videos: article.md layout, REAL assets on disk, markdown embeds,
+  local verify, then commit/push (pre-commit rebuilds docs/ for GitHub Pages).
 ---
 
 # Satire News Article Generator
 
 ## When to use
 
-Use this skill whenever the user wants a **new satirical article**, images for a story, **browser page previews**, or to **publish** so it appears on local preview and (after push) GitHub Pages.
+Use this skill whenever the user wants a **new satirical article**, **one or more images**, **video clips** (via Grok Imagine), **browser page previews**, or to **publish** so it appears on local preview and (after push) GitHub Pages.
 
 Repo root:
 
@@ -41,12 +40,17 @@ Slug = folder name: lowercase, hyphens only, unique, stable forever.
 Frontmatter + body (schema below). Outlet name: **Agent News**.  
 **Do not** add “this is satire” kickers — the site has one top banner.
 
-### 3. Add real image files (if illustrated)
+### 3. Add media with Grok Imagine (multiple images and/or video)
 
-1. Generate with image tools (photojournalism / editorial; avoid long in-image text).
-2. **Copy** into `articles/<slug>/assets/` with final kebab-case names.
-3. Session dirs (`~/.grok/sessions/.../images/`) are **not** served — always copy.
-4. Wire paths: `hero: "assets/..."` and body `![](assets/...)`.
+Default to **several** editorial images for an illustrated story (not just a hero). Add **video** when motion helps (protests, machine loops, wildlife, “breaking news” B-roll).
+
+Follow **§ Media production (Grok Imagine)** below. Summary:
+
+1. Generate images with `image_gen` / `image_edit` (load Imagine skill when calling tools).
+2. Generate video with `image_to_video` (or `reference_to_video` when 2–7 stills guide the shot) after a strong still exists.
+3. **Copy** every binary into `articles/<slug>/assets/` with final kebab-case names.
+4. Session dirs (`~/.grok/sessions/.../images|videos/`) are **not** served — always copy.
+5. Wire paths: `hero:` (still image for OG) + body `![](assets/...)` for images **and** videos.
 
 ### 4. Verify on disk + local preview API
 
@@ -54,9 +58,9 @@ Frontmatter + body (schema below). Outlet name: **Agent News**.
 ls -la articles/<slug>/assets/
 
 # Dev stack (if not already up): ./dev.sh
+# Every referenced .jpg/.png/.webp/.mp4/.webm must return 200:
 curl -sS -o /dev/null -w "%{http_code}\n" \
-  http://127.0.0.1:8787/content/<slug>/assets/<filename>.jpg
-# Expect 200 for every image referenced in article.md
+  http://127.0.0.1:8787/content/<slug>/assets/<filename>
 ```
 
 Also: `curl -sS http://127.0.0.1:8787/api/articles/<slug>` should return title + body.
@@ -150,14 +154,14 @@ Remote: `https://github.com/shikkie/satire-news-framework.git` · branch **`main
 
 ---
 
-## Critical rule — images must exist on disk
+## Critical rule — media must exist on disk
 
 | Required | Forbidden |
 |----------|-----------|
 | Real files under `articles/<slug>/assets/` | Paths in Markdown with no files |
-| `ls` lists every referenced file | Leaving files only in session image folders |
+| `ls` lists every referenced image **and** video | Leaving files only in session folders |
 | `curl` → **200** before commit | `manifest.json` or parallel CMS schemas |
-| Commit **binaries** with `article.md` | Committing text only → live 404 images |
+| Commit **binaries** with `article.md` | Text-only commit → live 404 media |
 
 ---
 
@@ -167,11 +171,12 @@ Remote: `https://github.com/shikkie/satire-news-framework.git` · branch **`main
 articles/
 └── <slug>/
     ├── article.md
-    └── assets/                    # required if any images
-        ├── hero-<topic>.jpg
-        ├── <role>-<topic>.jpg
-        ├── rendered-article-viewport.jpg   # optional
-        └── rendered-article-preview.jpg  # optional
+    └── assets/                         # required if any media
+        ├── hero-<topic>.jpg            # still for hero + OG (required if illustrated)
+        ├── <role>-<topic>.jpg          # additional stills (typical: 2–5)
+        ├── <scene>-clip.mp4            # optional inline video(s)
+        ├── rendered-article-viewport.jpg   # optional page screenshot
+        └── rendered-article-preview.jpg
 ```
 
 ### Slug rules
@@ -211,7 +216,7 @@ tags: ["tag1", "tag2"]
 | `author` | yes | Fictional; outlet is **Agent News** |
 | `date` | yes | ISO `YYYY-MM-DD` (homepage sorts newest first) |
 | `section` | yes | `Local` \| `Politics` \| `Business` \| `Tech` \| `Culture` \| `Opinion` \| `World` |
-| `hero` | if hero image | `assets/<file>` relative to article folder |
+| `hero` | if illustrated | **Still image only** `assets/<file>.jpg` (used for Discord/OG card) |
 | `tags` | optional | `[a, b]` |
 | `disclaimer` | no | Ignored in UI |
 
@@ -219,24 +224,92 @@ Tiny YAML only (no nested objects).
 
 ---
 
-## Image path rules
+## Media production (Grok Imagine)
 
-**Hero:**
+Load the **imagine** skill whenever calling image or video tools. Prefer **multiple** assets on illustrated stories.
+
+### When to use what
+
+| Need | Tool | Notes |
+|------|------|--------|
+| New still | `image_gen` | Photojournalism / wire-photo style; short text only |
+| Same subject, new angle | `image_edit` | Pass prior image path for consistency |
+| Animate one still | `image_to_video` | `duration` 6 or 10; default 6; `resolution_name` 480p unless asked |
+| Multi-still guided clip | `reference_to_video` | 2–7 images + prompt + `aspect_ratio` |
+| Social / OG card | Still `hero` | **Never** put `.mp4` in `hero:` — crawlers need an image |
+
+### Multi-image set (typical illustrated article)
+
+Aim for **3–5** stills with distinct roles (skip roles that do not fit the story):
+
+| Role | Filename pattern | Use |
+|------|------------------|-----|
+| Hero | `hero-<topic>.jpg` | Frontmatter `hero:` + often first body figure |
+| Scene / establishment | `scene-<place>.jpg` | Lede support |
+| Officials / process | `state-briefing.jpg`, `presser.jpg` | Quotes section |
+| Public / social | `social-reaction.jpg` | Reaction beat |
+| Document / graphic | `field-card-<topic>.jpg` | Satirical form/UI still |
+| Extra B-roll | `<role>-<topic>.jpg` | As needed |
+
+Generate **in parallel** when subjects are independent; use `image_edit` when the same character/object must match across frames.
+
+### Video (optional, when motion helps)
+
+1. Create a strong still first (`image_gen` or `image_edit`).
+2. Call `image_to_video` with that image + a short present-tense motion prompt (one clear camera move or subject motion).
+3. Copy the returned `.mp4` into `assets/` as `kebab-case-clip.mp4` (or `.webm`).
+4. Embed in the body with the **same markdown image syntax** (the SPA renders `.mp4`/`.webm` as `<video controls>`):
+
+```markdown
+![Tankers roll past cooling towers at dusk.](assets/campus-tankers-clip.mp4)
+```
+
+**Video limits / taste:** prefer one short clip mid-article, not a wall of autoplay. Keep content non-graphic. Prefer 16:9 source stills for clips. OG/Twitter still use `hero` JPG.
+
+### Copy out of session storage (required)
+
+```bash
+# Images (example paths — use the tool’s returned path)
+cp /path/from/image_gen.jpg articles/<slug>/assets/hero-<topic>.jpg
+
+# Video
+cp /path/from/image_to_video.mp4 articles/<slug>/assets/<scene>-clip.mp4
+
+chmod 644 articles/<slug>/assets/*
+```
+
+Never leave final paths as `1.jpg` / `5.mp4` from the tool dump names.
+
+---
+
+## Image & video path rules (Markdown)
+
+**Hero (still only):**
 
 ```yaml
 hero: "assets/hero-example.jpg"
 ```
 
-**Body (preferred):**
+**Body — images and videos use the same syntax:**
 
 ```markdown
-![Caption for this story.](assets/hero-example.jpg)
+![Hero caption.](assets/hero-example.jpg)
+
+![Officials at the briefing.](assets/state-briefing.jpg)
+
+![Crowd reaction outside city hall.](assets/social-reaction.jpg)
+
+![Slow push over the cooling towers.](assets/cooling-towers-clip.mp4)
 ```
 
 Also accepted: `/content/<slug>/assets/file.jpg` (SPA rewrites slug if needed).
 
-Naming: kebab-case; `hero-<topic>.jpg`, `social-reaction.jpg`, `state-briefing.jpg`, etc.  
-Prefer `.jpg` / `.png` / `.webp`. Never leave files as `5.jpg` from the generator.
+| Type | Extensions | Renderer |
+|------|------------|----------|
+| Image | `.jpg` `.jpeg` `.png` `.webp` `.gif` | `<img>` |
+| Video | `.mp4` `.webm` `.ogg` `.mov` | `<video controls playsinline>` |
+
+Naming: kebab-case. Prefer `.jpg` for stills, `.mp4` for video.
 
 ---
 
@@ -265,17 +338,18 @@ Prefer `.jpg` / `.png` / `.webp`. Never leave files as `5.jpg` from the generato
 [ ] ls articles/ — unique kebab-case slug
 [ ] mkdir -p articles/<slug>/assets
 [ ] Write articles/<slug>/article.md (frontmatter + body)
-[ ] Generate/copy REAL images into assets/ (if illustrated)
-[ ] hero: + body ![](assets/...) match on-disk filenames
-[ ] Alt captions match THIS story
-[ ] ls assets/ + curl each /content/<slug>/assets/... → 200
-[ ] Optional: rendered-article-viewport.jpg + preview.jpg if user wants screenshots
+[ ] Plan media: multi stills (roles) ± video if motion helps
+[ ] Grok Imagine: image_gen / image_edit (+ image_to_video as needed)
+[ ] Copy ALL binaries into assets/ with final names (not session paths only)
+[ ] hero: is a STILL image; body ![](assets/...) for each image and .mp4
+[ ] Alt/captions match THIS story
+[ ] ls assets/ + curl every referenced file → 200
+[ ] Optional: rendered-article-viewport.jpg + preview.jpg
 [ ] No satire kickers; no manifest.json
-[ ] npm run hooks:install if pre-commit not active (or npm run build + git add docs/)
-[ ] git add articles/<slug>/  (+ docs/ if no hook)
-[ ] git commit (pre-commit rebuilds docs/ when hooks work)
-[ ] git push origin main
-[ ] Confirm commit includes docs/ if publishing for Pages
+[ ] Hooks installed or manual npm run build + git add docs/
+[ ] git add articles/<slug>/ (binaries included)
+[ ] git commit + git push origin main
+[ ] Confirm docs/ updated for Pages
 ```
 
 ### Minimum
@@ -284,12 +358,22 @@ Prefer `.jpg` / `.png` / `.webp`. Never leave files as `5.jpg` from the generato
 articles/<slug>/article.md
 ```
 
-### Illustrated
+### Illustrated (multi-image)
 
 ```text
 articles/<slug>/article.md
 articles/<slug>/assets/hero-<topic>.jpg
+articles/<slug>/assets/state-briefing.jpg
+articles/<slug>/assets/social-reaction.jpg
+```
+
+### With video
+
+```text
+articles/<slug>/article.md
+articles/<slug>/assets/hero-<topic>.jpg      # still for OG
 articles/<slug>/assets/<other>.jpg
+articles/<slug>/assets/<scene>-clip.mp4      # body embed
 ```
 
 ### After commit (what should be in git)
@@ -330,10 +414,13 @@ Do **not** commit: `node_modules/`, `dist/`, `pages/`, `.pids/`, `logs/`, `.env`
 
 | Don’t | Why |
 |-------|-----|
-| Markdown image paths with no files on disk | 404 |
-| Leave images only under `~/.grok/sessions/...` | Not served |
+| Markdown media paths with no files on disk | 404 |
+| Leave media only under `~/.grok/sessions/...` | Not served |
+| `hero: assets/foo.mp4` | OG/Discord need a still image |
+| One lonely stock-ish image when the story has 3+ beats | Prefer multi-role stills |
 | Invent `manifest.json` | Framework ignores it |
 | Commit `article.md` without asset binaries | Live 404 |
 | Forget `docs/` when hooks missing | Pages stays stale |
 | End article with “this is satire” lectures | Redundant with site banner |
 | Hand-edit `docs/content/` as the source of truth | Overwritten by `npm run build` — edit `articles/` only |
+| Autoplay-heavy or graphic violence video | Keep clips short, controls on, tasteful |

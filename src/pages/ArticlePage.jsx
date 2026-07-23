@@ -7,6 +7,7 @@ import {
   formatDate,
   heroSrc,
   inlineImageSrc,
+  isVideoSrc,
 } from "../lib/articles.js";
 import {
   absoluteUrl,
@@ -99,6 +100,22 @@ export default function ArticlePage() {
           components={{
             img: ({ src = "", alt = "", ...rest }) => {
               const resolved = inlineImageSrc(article, src);
+              if (isVideoSrc(src) || isVideoSrc(resolved)) {
+                return (
+                  <figure className="story-inline-figure story-inline-video">
+                    <video
+                      src={resolved}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="story-video"
+                    >
+                      <a href={resolved}>Download video</a>
+                    </video>
+                    {alt ? <figcaption>{alt}</figcaption> : null}
+                  </figure>
+                );
+              }
               return (
                 <figure className="story-inline-figure">
                   <img
