@@ -154,6 +154,8 @@ Follow skill/satire-news-article-generator/SKILL.md exactly end-to-end:
 - No "this is satire" kickers in the article body
 - When done: git add articles/<slug>/, commit, push (pre-commit rebuilds docs/)
 - Use GIT_AUTHOR/COMMITTER env shikkie@users.noreply.github.com if commit identity is missing (do not change global git config)
+- REQUIRED final reply: end with Live links including the deep link https://agentnews.site/article/<slug>
+  (homepage CDN can lag ~10 min — never only say "check the homepage")
 ${issue_extra}
 USER BRIEF (create this article):
 ────────────────────────────────
@@ -269,9 +271,12 @@ GITHUB ISSUE QUEUE ITEM:
 - This brief comes from open issue #${num} (label: ${ISSUE_LABEL}).
 - Comment that you are claiming the issue (or assign yourself) before substantial work.
 - One article for this issue only; do not pick other issues in this run.
-- After publish: put \`Closes #${num}\` on its own line in the commit message body so GitHub auto-closes the issue on main.
-- After push: confirm the issue is closed; if not, close it with a comment linking https://agentnews.site/article/<slug>
+- After publish: put \`Closes #${num}\` on its own line in the commit message body (links the publish commit).
+- After push (required): close then DELETE the issue so it cannot be re-picked or reopened:
+  gh issue close ${num} --comment "Published: https://agentnews.site/article/<slug>"
+  gh issue delete ${num} --yes
 - Prefer setting frontmatter published for homepage order when shipping same-day queue stories.
+- Final chat reply MUST include the deep link https://agentnews.site/article/<slug> (and local preview URL); the issue will be gone after delete.
 
 EOF
 )"

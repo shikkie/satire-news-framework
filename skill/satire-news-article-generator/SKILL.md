@@ -3,8 +3,9 @@ name: satire-news-article-generator
 description: >
   Create Agent News (agentnews.site) satirical articles with multiple Grok Imagine
   stills: article.md layout, REAL assets on disk, markdown embeds, local verify,
-  commit/push. For video: NEVER call image_to_video — give the user an Imagine
-  prompt; they return the .mp4 to wire into the story. Also processes open
+  commit/push. Always end with the live deep link https://agentnews.site/article/<slug>
+  (homepage CDN can lag). For video: NEVER call image_to_video — give the user an
+  Imagine prompt; they return the .mp4 to wire into the story. Also processes open
   GitHub issues labeled article-request as work queue.
 ---
 
@@ -31,12 +32,18 @@ The standard way to hand work to the Grok CLI (or any agent following this skill
 3. When you pick one up:
    - Comment on the issue that you are claiming it (or assign yourself).
    - Follow this skill end-to-end to produce the full article + assets.
-   - **Commit + push with a closing keyword in the commit message** so GitHub auto-closes the issue when the commit lands on `main`:
-     - Use `Closes #N` (or `Fixes #N` / `Resolves #N`) on its own line in the commit body.
+   - **Commit + push** with `Closes #N` on its own line in the commit body (links the publish commit to the issue before it is removed):
      - Example: `Closes #12`
-   - After push, leave a short issue comment with the live link (optional if the close comment is enough):  
-     `https://agentnews.site/article/<slug>`
-   - If auto-close did not fire (keyword missing, wrong branch, etc.), close the issue manually with that link.
+   - **After push: close the issue, then delete it** so it cannot be reopened or re-picked from the queue:
+     ```bash
+     # 1) Close with deep link (if still open)
+     gh issue close <N> --comment "Published: https://agentnews.site/article/<slug>"
+     # 2) Delete so it leaves the issue list entirely
+     gh issue delete <N> --yes
+     ```
+   - Do **not** leave the issue merely closed — closed items can still clutter the repo and be reopened. **Delete is required** after a successful publish.
+   - If delete fails (permissions), leave it closed with the deep-link comment and report the error; do not re-open.
+   - Always put the deep link in your **final chat reply** (see **§ Final handoff**) — the issue body will be gone after delete.
 
 **How humans (or upstream agents) file work**
 
@@ -53,7 +60,7 @@ gh issue list --label article-request --state open
 # or: gh api "repos/OWNER/REPO/issues?labels=article-request&state=open"
 ```
 
-Pick the oldest open issue first unless the user says otherwise. One article per issue; one `Closes #N` per commit.
+Pick the oldest open issue first unless the user says otherwise. One article per issue; one `Closes #N` per commit; then **close + delete** that issue after publish.
 
 ### Trigger via script (optional)
 
@@ -78,7 +85,7 @@ EOF
 ./scripts/create-article.sh --issues --dry-run
 ```
 
-The script `cd`s/`--cwd`s to the repo root, wraps **grok** headless (`--prompt-file`, `--always-approve`), and injects instructions to follow this skill. With `--issues`, it lists open issues via `gh`, runs one Grok job per issue (oldest first), and injects `Closes #N` commit instructions. Env: `GROK_BIN`, `GROK_MODEL`, `ARTICLE_ISSUE_LABEL` (default `article-request`), `SKIP_YOLO=1`.
+The script `cd`s/`--cwd`s to the repo root, wraps **grok** headless (`--prompt-file`, `--always-approve`), and injects instructions to follow this skill. With `--issues`, it lists open issues via `gh`, runs one Grok job per issue (oldest first), and injects `Closes #N` + **close then delete** instructions. Env: `GROK_BIN`, `GROK_MODEL`, `ARTICLE_ISSUE_LABEL` (default `article-request`), `SKIP_YOLO=1`.
 
 ---
 
@@ -160,7 +167,7 @@ git add articles/<slug>/
 # include skill/app fixes only if intentional
 
 # If this story came from a GitHub issue, put Closes #N in the commit body
-# so GitHub auto-closes the issue when the commit reaches main.
+# (associates the publish commit; you will still close + delete after push).
 git commit -m "$(cat <<'EOF'
 Add satirical article: <slug>
 
@@ -173,8 +180,14 @@ EOF
 git push -u origin HEAD
 ```
 
-After push (issue-sourced work): confirm the issue is closed; if not,  
-`gh issue close <N> --comment "Published: https://agentnews.site/article/<slug>"`.
+After push (issue-sourced work) — **close then delete** (required):
+
+```bash
+gh issue close <N> --comment "Published: https://agentnews.site/article/<slug>"
+gh issue delete <N> --yes
+```
+
+Queue only lists **open** issues, but **delete** removes the ticket entirely so it cannot be reopened or re-labeled into the queue. Put the deep link in the final chat reply; the issue will no longer exist to hold it.
 
 #### What pre-commit does (if hooks installed)
 
@@ -217,6 +230,42 @@ Remote: `https://github.com/shikkie/satire-news-framework.git` · branch **`main
 | Push to `main` | Includes `articles/<slug>/` + rebuilt `docs/` |
 | GitHub Pages | **Settings → Deploy from a branch → `main` → `/docs`** serves latest committed `docs/` |
 | Custom domain | `docs/CNAME` / `public/CNAME` = **agentnews.site** |
+| CDN | Fastly edge often caches ~**10 minutes** — **homepage feed can lag**; deep article URLs usually work sooner |
+
+There is **no** user-facing CDN purge. Prefer deep links over “check the homepage.”
+
+### 7. Final handoff (required — every story)
+
+When work is done (after push, or after local-only verify if the user asked not to publish), **end your last reply** with the direct deep links. Do **not** only say “live on the homepage” or make the user hunt for the slug.
+
+**Required block (use real values):**
+
+```text
+## Live links
+- Article (deep link): https://agentnews.site/article/<slug>
+- Local preview: http://127.0.0.1:5173/article/<slug>
+- Slug: <slug>
+```
+
+If the story is not pushed yet, still give the deep-link **shape** and mark it as “after Pages deploy”:
+
+```text
+## Links (after push + Pages deploy)
+- Article (deep link): https://agentnews.site/article/<slug>
+```
+
+**Why:** GitHub Pages’ CDN can leave `articles-data.json` / the homepage stale for up to ~10 minutes after deploy. The path `/article/<slug>/` (and its OG HTML under `docs/article/<slug>/`) is the reliable way to open the new story without waiting for the homepage feed to refresh.
+
+**Also verify once after push (best effort):**
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}\n" \
+  https://agentnews.site/article/<slug>/
+```
+
+Report the status code next to the deep link when you have it (200 = good; 404 = Pages not deployed yet — deep link still the URL to retry).
+
+Multiple stories in one run: list **one deep link per slug**.
 
 ---
 
@@ -457,7 +506,9 @@ Naming: kebab-case. Prefer `.jpg` for stills, `.mp4` for video.
 [ ] git add articles/<slug>/ (binaries included)
 [ ] git commit with Closes #N in body (when from an issue) + git push origin main
 [ ] Confirm docs/ updated for Pages
-[ ] If from a GitHub issue: issue auto-closed via Closes #N (or close manually with live link)
+[ ] If from a GitHub issue: gh issue close <N> (deep-link comment) then gh issue delete <N> --yes
+[ ] FINAL REPLY: paste https://agentnews.site/article/<slug> (deep link) — not just “check homepage”
+[ ] Optional: curl live deep link → report 200/404
 ```
 
 ### Minimum
@@ -535,3 +586,6 @@ Do **not** commit: `node_modules/`, `dist/`, `pages/`, `.pids/`, `logs/`, `.env`
 | Calling `image_to_video` / video tools in this agent | Broken on ZDR — user runs Imagine; agent only prompts |
 | “Video generation unavailable” in article copy | Never; use still + clean prose until user supplies .mp4 |
 | Autoplay-heavy or graphic violence video | Keep clips short, controls on, tasteful |
+| Finish without pasting `https://agentnews.site/article/<slug>` | User needs the deep link while homepage CDN lags |
+| Tell user only to “refresh the homepage” | Feed JSON can stay stale ~10 min; deep path is the fix |
+| Leave article-request issues merely closed after publish | Close **then delete** (`gh issue delete N --yes`) so they cannot re-enter the queue |
