@@ -175,18 +175,20 @@ run_grok() {
   compose_prompt "$user_brief" "$issue_extra" >"$COMPOSED"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "create-article.sh: dry-run (cwd=${REPO_ROOT}, model=${MODEL:-<cli default>}${label:+, ${label}})" >&2
-    echo "create-article.sh: composed prompt → $COMPOSED" >&2
+    # Do not print absolute paths (home dirs / usernames) to stdout/stderr.
+    echo "create-article.sh: dry-run (model=${MODEL:-<cli default>}${label:+, ${label}})" >&2
+    echo "create-article.sh: composed prompt ready" >&2
     cat "$COMPOSED"
     if [[ "$KEEP_PROMPT" -eq 1 ]]; then
-      echo "create-article.sh: prompt file kept: $COMPOSED" >&2
+      echo "create-article.sh: prompt file kept (temp)" >&2
     else
       rm -f "$COMPOSED"
     fi
     return 0
   fi
 
-  echo "create-article.sh: repo=${REPO_ROOT}" >&2
+  # Avoid logging absolute repo paths (leaks usernames via /home/<user>/...).
+  echo "create-article.sh: starting" >&2
   echo "create-article.sh: model=${MODEL:-<cli default>}" >&2
   [[ -n "$label" ]] && echo "create-article.sh: ${label}" >&2
   echo "create-article.sh: brief_chars=${#user_brief}" >&2
@@ -210,7 +212,7 @@ run_grok() {
   "$GROK_BIN" "${GROK_ARGS[@]}" || status=$?
 
   if [[ "$KEEP_PROMPT" -eq 1 ]]; then
-    echo "create-article.sh: prompt file kept: $COMPOSED" >&2
+    echo "create-article.sh: prompt file kept (temp)" >&2
   else
     rm -f "$COMPOSED"
   fi

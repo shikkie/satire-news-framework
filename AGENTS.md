@@ -33,6 +33,10 @@ This is satire tooling. Do not use it to impersonate real outlets for fraud, har
 ├── dev.sh                    # start/stop preview (Vite + Python)
 ├── preview/
 │   └── server.py             # article API + asset server (port 8765)
+├── agentnewsd/               # Flask API: POST brief → create-article.sh (NDJSON stream)
+│   ├── app.py
+│   ├── requirements.txt
+│   └── .env.example
 ├── articles/                 # one folder per story
 │   └── <slug>/
 │       ├── article.md
@@ -81,19 +85,22 @@ Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers 
 ## Dev workflow
 
 ```bash
-./dev.sh              # start Python API (8787) + Vite (5173)
+./dev.sh              # start preview API (8787) + Vite (5173) + agentnewsd (8790)
+./dev.sh start agentnewsd   # create-article HTTP API only
 ./dev.sh status
-./dev.sh logs
+./dev.sh logs                 # all three
+./dev.sh logs agentnewsd
 ./dev.sh stop
 ```
 
 - Frontend binds **0.0.0.0:5173** (all interfaces)
 - Phone / LAN URLs: `http://bandit:5173`, `http://bandit.local:5173`, or `http://<lan-ip>:5173`
 - Vite `server.allowedHosts: true` so Host `bandit` is accepted (not blocked)
-- API binds **0.0.0.0:8787** — Vite proxies `/api` and `/content` to `127.0.0.1:8787`
-- Local-only: `API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh`
+- Preview API binds **0.0.0.0:8787** — Vite proxies `/api` and `/content` to `127.0.0.1:8787`
+- **agentnewsd** binds **0.0.0.0:8790** by default (all interfaces; API-key create endpoint); logs in `logs/agentnewsd.log`; see `agentnewsd/README.md`
+- Local-only: `API_HOST=127.0.0.1 UI_HOST=127.0.0.1 AGENTNEWSD_HOST=127.0.0.1 ./dev.sh`
 
-Note: default API port is **8787** (8765 is often taken by other projects on this machine).
+Note: default preview API port is **8787** (8765 is often taken by other projects on this machine).
 
 ## Build / deploy (GitHub Pages — no Actions)
 
@@ -128,6 +135,7 @@ Committed hooks live in **`.githooks/`**. After clone (or `npm install`), hooks 
 - Prefer editing article folders over inventing a CMS
 - **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (stills via `image_gen`/`image_edit` only; **never** call video tools — for video give the user an Imagine prompt and wait for their `.mp4`; `hero:` still only; curl → 200; pre-commit rebuilds `docs/`)
 - **Scripted article jobs:** `./scripts/create-article.sh "brief..."` (or `--file` / stdin) runs headless `grok` with `--cwd` set to this repo; `./scripts/create-article.sh --issues` drains open GitHub issues labeled `article-request` (oldest first; optional `--limit N`)
+- **HTTP trigger (agentnewsd):** Flask service in `agentnewsd/` — full API docs (incl. Postman): `agentnewsd/README.md`. Accepts `POST /v1/create-article` with JSON `{api_key, article_def, dry_run?}`; argv-only `create-article.sh --file`; NDJSON stream; concurrent jobs → `409`. Install: `sudo ./scripts/install-agentnewsd.sh --user SERVICE_USER`
 - **New ads / fake businesses:** follow `skill/satire-business-ad-generator/SKILL.md` (`ads/<slug>/business.md` + assets; rotation on home + articles)
 - Keep the SPA dependency-light (React + markdown renderer only)
 - Do not commit secrets; no API keys required for core preview

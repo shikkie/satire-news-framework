@@ -5,17 +5,18 @@
 # Starts:
 #   - Python article API  (0.0.0.0:8787 by default — all interfaces)
 #   - Vite React frontend (0.0.0.0:5173 by default — all interfaces)
+#   - agentnewsd create API (0.0.0.0:8790 by default — all interfaces; API key auth)
 #
-# Bind local-only instead:
+# Bind preview local-only instead:
 #   API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh
 #
 # Usage:
-#   ./dev.sh              # start both
-#   ./dev.sh start [api|frontend|all]
-#   ./dev.sh stop  [api|frontend|all]
+#   ./dev.sh              # start all (api + frontend + agentnewsd)
+#   ./dev.sh start [api|frontend|agentnewsd|all]
+#   ./dev.sh stop  [api|frontend|agentnewsd|all]
 #   ./dev.sh restart [...]
 #   ./dev.sh status
-#   ./dev.sh logs [api|frontend|all]
+#   ./dev.sh logs [api|frontend|agentnewsd|all]
 #   ./dev.sh help
 #
 
@@ -30,11 +31,23 @@ API_HOST="${API_HOST:-0.0.0.0}"
 API_PORT="${API_PORT:-8787}"
 UI_HOST="${UI_HOST:-0.0.0.0}"
 UI_PORT="${UI_PORT:-5173}"
+# agentnewsd: 0.0.0.0 so remote clients can reach it (auth is API key). Local-only: AGENTNEWSD_HOST=127.0.0.1
+AGENTNEWSD_HOST="${AGENTNEWSD_HOST:-0.0.0.0}"
+AGENTNEWSD_PORT="${AGENTNEWSD_PORT:-8790}"
 
 API_PID_FILE="${PID_DIR}/api.pid"
 UI_PID_FILE="${PID_DIR}/frontend.pid"
+AGENTNEWSD_PID_FILE="${PID_DIR}/agentnewsd.pid"
 API_LOG="${LOG_DIR}/api.log"
 UI_LOG="${LOG_DIR}/frontend.log"
+AGENTNEWSD_LOG="${LOG_DIR}/agentnewsd.log"
+
+AGENTNEWSD_DIR="${REPO_ROOT}/agentnewsd"
+AGENTNEWSD_VENV="${AGENTNEWSD_DIR}/.venv"
+AGENTNEWSD_APP="${AGENTNEWSD_DIR}/app.py"
+AGENTNEWSD_REQ="${AGENTNEWSD_DIR}/requirements.txt"
+AGENTNEWSD_ENV="${AGENTNEWSD_DIR}/.env"
+AGENTNEWSD_ENV_EXAMPLE="${AGENTNEWSD_DIR}/.env.example"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -132,6 +145,83 @@ ensure_node_modules() {
   fi
 }
 
+ensure_agentnewsd_env() {
+  if [[ -f "$AGENTNEWSD_ENV" ]]; then
+    return 0
+  fi
+  if [[ -f "$AGENTNEWSD_ENV_EXAMPLE" ]]; then
+    log_info "Creating ${AGENTNEWSD_ENV} from .env.example"
+    cp "$AGENTNEWSD_ENV_EXAMPLE" "$AGENTNEWSD_ENV"
+  else
+    log_info "Creating ${AGENTNEWSD_ENV}"
+    cat >"$AGENTNEWSD_ENV" <<'EOF'
+AGENTNEWSD_API_KEY=change-me-to-a-long-random-secret
+AGENTNEWSD_HOST=0.0.0.0
+AGENTNEWSD_PORT=8790
+AGENTNEWSD_TIMEOUT_SECONDS=3600
+EOF
+  fi
+  if grep -qE '^(AGENTNEWSD_API_KEY=change-me|AGENTNEWSD_API_KEY=change-me-to-a-long-random-secret)' "$AGENTNEWSD_ENV" 2>/dev/null; then
+    local new_key
+    new_key="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+    local tmp
+    tmp="$(mktemp)"
+    sed "s|^AGENTNEWSD_API_KEY=.*|AGENTNEWSD_API_KEY=${new_key}|" "$AGENTNEWSD_ENV" >"$tmp"
+    mv "$tmp" "$AGENTNEWSD_ENV"
+    chmod 600 "$AGENTNEWSD_ENV"
+    log_ok "Generated AGENTNEWSD_API_KEY in ${AGENTNEWSD_ENV}"
+  fi
+  chmod 600 "$AGENTNEWSD_ENV" 2>/dev/null || true
+}
+
+ensure_agentnewsd_venv() {
+  if [[ ! -f "$AGENTNEWSD_APP" ]]; then
+    log_error "Missing ${AGENTNEWSD_APP}"
+    return 1
+  fi
+  if [[ ! -x "${AGENTNEWSD_VENV}/bin/python" ]]; then
+    log_info "Creating agentnewsd venv at ${AGENTNEWSD_VENV}"
+    python3 -m venv "$AGENTNEWSD_VENV"
+    "${AGENTNEWSD_VENV}/bin/pip" install --upgrade pip >/dev/null
+    "${AGENTNEWSD_VENV}/bin/pip" install -r "$AGENTNEWSD_REQ"
+  elif [[ -f "$AGENTNEWSD_REQ" ]]; then
+    # Cheap ensure flask present (first start after clone with empty-ish venv)
+    if ! "${AGENTNEWSD_VENV}/bin/python" -c "import flask" 2>/dev/null; then
+      log_info "Installing agentnewsd Python deps…"
+      "${AGENTNEWSD_VENV}/bin/pip" install -r "$AGENTNEWSD_REQ"
+    fi
+  fi
+}
+
+start_agentnewsd() {
+  if is_running "$AGENTNEWSD_PID_FILE"; then
+    log_ok "agentnewsd already running (pid $(read_pid "$AGENTNEWSD_PID_FILE"))"
+    return 0
+  fi
+  if port_in_use "$AGENTNEWSD_PORT"; then
+    log_error "Port ${AGENTNEWSD_PORT} is already in use (agentnewsd). Refusing to start."
+    return 1
+  fi
+  ensure_agentnewsd_env
+  ensure_agentnewsd_venv
+  log_info "Starting agentnewsd on ${AGENTNEWSD_HOST}:${AGENTNEWSD_PORT} (URL http://$(display_host "$AGENTNEWSD_HOST"):${AGENTNEWSD_PORT})"
+  (
+    cd "$AGENTNEWSD_DIR"
+    # Host/port from dev.sh take precedence over .env (app only fills missing keys)
+    export AGENTNEWSD_HOST AGENTNEWSD_PORT
+    export AGENTNEWSD_REPO_ROOT="${AGENTNEWSD_REPO_ROOT:-$REPO_ROOT}"
+    setsid nohup "${AGENTNEWSD_VENV}/bin/python" "$AGENTNEWSD_APP" >>"$AGENTNEWSD_LOG" 2>&1 &
+    echo $! >"$AGENTNEWSD_PID_FILE"
+  )
+  sleep 0.5
+  if is_running "$AGENTNEWSD_PID_FILE"; then
+    log_ok "agentnewsd started (pid $(read_pid "$AGENTNEWSD_PID_FILE")) → log ${AGENTNEWSD_LOG}"
+  else
+    log_error "agentnewsd failed to start — see ${AGENTNEWSD_LOG}"
+    return 1
+  fi
+}
+
 start_frontend() {
   if is_running "$UI_PID_FILE"; then
     log_ok "Frontend already running (pid $(read_pid "$UI_PID_FILE"))"
@@ -208,17 +298,24 @@ cmd_start() {
   case "$target" in
     api) start_api ;;
     frontend|ui|web) start_frontend ;;
+    agentnewsd|agent|create-api)
+      start_agentnewsd
+      ;;
     all|"")
       start_api
       start_frontend
+      start_agentnewsd
       local ui_url="http://$(display_host "$UI_HOST"):${UI_PORT}"
       local api_url="http://$(display_host "$API_HOST"):${API_PORT}/api/articles"
+      local agent_url="http://$(display_host "$AGENTNEWSD_HOST"):${AGENTNEWSD_PORT}"
       echo
-      log_ok "Preview ready (bound ${UI_HOST}:${UI_PORT} + ${API_HOST}:${API_PORT})"
+      log_ok "Dev stack ready (preview + agentnewsd)"
       echo "  This machine:  http://127.0.0.1:${UI_PORT}"
       echo "  Hostname:      http://bandit:${UI_PORT}"
       echo "  Phone / LAN:   ${ui_url}"
-      echo "  API:           ${api_url}"
+      echo "  Preview API:   ${api_url}"
+      echo "  agentnewsd:    ${agent_url}/health  (POST ${agent_url}/v1/create-article)"
+      echo "  Docs:          agentnewsd/README.md"
       echo "  Stop:          ./dev.sh stop"
       ;;
     *)
@@ -233,9 +330,11 @@ cmd_stop() {
   case "$target" in
     api) stop_one "API" "$API_PID_FILE" ;;
     frontend|ui|web) stop_one "Frontend" "$UI_PID_FILE" ;;
+    agentnewsd|agent|create-api) stop_one "agentnewsd" "$AGENTNEWSD_PID_FILE" ;;
     all|"")
       stop_one "Frontend" "$UI_PID_FILE"
       stop_one "API" "$API_PID_FILE"
+      stop_one "agentnewsd" "$AGENTNEWSD_PID_FILE"
       ;;
     *)
       log_error "Unknown target: $target"
@@ -246,20 +345,26 @@ cmd_stop() {
 
 cmd_status() {
   ensure_dirs
-  local ui_disp api_disp
+  local ui_disp api_disp agent_disp
   ui_disp="$(display_host "$UI_HOST")"
   api_disp="$(display_host "$API_HOST")"
+  agent_disp="$(display_host "$AGENTNEWSD_HOST")"
   echo "satire-news-framework dev status"
   echo "--------------------------------"
   if is_running "$API_PID_FILE"; then
-    echo -e "API:      ${GREEN}running${NC}  pid $(read_pid "$API_PID_FILE")  bind ${API_HOST}:${API_PORT}  → http://${api_disp}:${API_PORT}"
+    echo -e "API:        ${GREEN}running${NC}  pid $(read_pid "$API_PID_FILE")  bind ${API_HOST}:${API_PORT}  → http://${api_disp}:${API_PORT}"
   else
-    echo -e "API:      ${YELLOW}stopped${NC}"
+    echo -e "API:        ${YELLOW}stopped${NC}"
   fi
   if is_running "$UI_PID_FILE"; then
-    echo -e "Frontend: ${GREEN}running${NC}  pid $(read_pid "$UI_PID_FILE")  bind ${UI_HOST}:${UI_PORT}  → http://${ui_disp}:${UI_PORT}"
+    echo -e "Frontend:   ${GREEN}running${NC}  pid $(read_pid "$UI_PID_FILE")  bind ${UI_HOST}:${UI_PORT}  → http://${ui_disp}:${UI_PORT}"
   else
-    echo -e "Frontend: ${YELLOW}stopped${NC}"
+    echo -e "Frontend:   ${YELLOW}stopped${NC}"
+  fi
+  if is_running "$AGENTNEWSD_PID_FILE"; then
+    echo -e "agentnewsd: ${GREEN}running${NC}  pid $(read_pid "$AGENTNEWSD_PID_FILE")  bind ${AGENTNEWSD_HOST}:${AGENTNEWSD_PORT}  → http://${agent_disp}:${AGENTNEWSD_PORT}"
+  else
+    echo -e "agentnewsd: ${YELLOW}stopped${NC}"
   fi
 }
 
@@ -273,9 +378,12 @@ cmd_logs() {
     frontend|ui|web)
       tail -n 80 -f "$UI_LOG"
       ;;
+    agentnewsd|agent|create-api)
+      tail -n 80 -f "$AGENTNEWSD_LOG"
+      ;;
     all|"")
-      touch "$API_LOG" "$UI_LOG"
-      tail -n 40 -f "$API_LOG" "$UI_LOG"
+      touch "$API_LOG" "$UI_LOG" "$AGENTNEWSD_LOG"
+      tail -n 40 -f "$API_LOG" "$UI_LOG" "$AGENTNEWSD_LOG"
       ;;
     *)
       log_error "Unknown target: $target"
@@ -286,11 +394,11 @@ cmd_logs() {
 
 cmd_help() {
   cat <<EOF
-dev.sh — satire-news-framework local preview
+dev.sh — satire-news-framework local preview + agentnewsd
 
 Commands:
-  ./dev.sh                 Start API + Vite
-  ./dev.sh start [target]  target: all | api | frontend
+  ./dev.sh                 Start API + Vite + agentnewsd
+  ./dev.sh start [target]  target: all | api | frontend | agentnewsd
   ./dev.sh stop  [target]
   ./dev.sh restart [target]
   ./dev.sh status
@@ -298,15 +406,18 @@ Commands:
   ./dev.sh help
 
 Ports / bind (override with env):
-  API_HOST=${API_HOST}   API_PORT=${API_PORT}
-  UI_HOST=${UI_HOST}     UI_PORT=${UI_PORT}
+  API_HOST=${API_HOST}             API_PORT=${API_PORT}
+  UI_HOST=${UI_HOST}               UI_PORT=${UI_PORT}
+  AGENTNEWSD_HOST=${AGENTNEWSD_HOST}   AGENTNEWSD_PORT=${AGENTNEWSD_PORT}
 
-  Default bind is 0.0.0.0 (all interfaces) so phones on the LAN can connect.
-  Local-only: API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh
+  Default bind is 0.0.0.0 (all interfaces) for preview + agentnewsd.
+  Local-only: API_HOST=127.0.0.1 UI_HOST=127.0.0.1 AGENTNEWSD_HOST=127.0.0.1 ./dev.sh
 
 URLs after start:
   http://127.0.0.1:${UI_PORT}
   http://$(display_host "$UI_HOST"):${UI_PORT}   # phone / LAN
+  http://$(display_host "$AGENTNEWSD_HOST"):${AGENTNEWSD_PORT}/health   # agentnewsd
+  Docs: agentnewsd/README.md
 EOF
 }
 
