@@ -1,0 +1,28 @@
+target-version = "py312"
+line-length = 100
+src = ["app", "scripts", "tests"]
+
+[lint]
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "I",   # isort
+  "B",   # bugbear
+  "UP",  # pyupgrade
+  "S",   # bandit-in-ruff (subset)
+]
+ignore = [
+  "S101",  # assert in tests
+  "S105",  # hardcoded password strings in tests/config defaults
+  "S106",
+  "S107",
+  "S311",  # random for non-crypto
+  "UP047",  # TypeVar style fine for our decorators
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]
+"scripts/*" = ["E402"]
+
+[format]
+quote-style = "double"

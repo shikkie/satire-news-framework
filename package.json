@@ -1,7 +1,7 @@
 {
   "name": "satire-news-framework",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,16 @@
     "og:inject": "node scripts/inject-og-html.mjs",
     "preview": "vite preview",
     "hooks:install": "bash scripts/install-git-hooks.sh",
-    "prepare": "bash scripts/install-git-hooks.sh"
+    "prepare": "bash scripts/install-git-hooks.sh",
+    "lint": "eslint src --ext .js,.jsx",
+    "lint:fix": "eslint src --ext .js,.jsx --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run test",
+    "api:test": "cd api && .venv/bin/pytest -q || (cd api && python3 -m pytest -q)",
+    "api:lint": "cd api && ruff check app scripts tests",
+    "api:bandit": "cd api && bandit -c bandit.yaml -r app scripts",
+    "quality": "npm run check && npm run api:lint && npm run api:test && npm run api:bandit"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -22,8 +31,15 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.28.0",
     "@vitejs/plugin-react": "^4.5.2",
+    "eslint": "^9.28.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.2.0",
+    "jsdom": "^26.1.0",
     "playwright": "^1.49.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^3.2.3"
   }
 }

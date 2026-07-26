@@ -1,8 +1,10 @@
 /**
  * Article data access.
- * Dev: fetch from Python preview API (/api/...).
- * Prod / offline: fall back to static public/articles-data.json snapshot.
+ * App stack: Flask /api (Mongo).
+ * Legacy preview: Python folder API or static public/articles-data.json.
  */
+
+import { heroMediaUrl, resolveMediaUrl } from "./media.js";
 
 const cache = {
   list: null,
@@ -12,17 +14,10 @@ const cache = {
 /**
  * Resolve any article-relative or content path to a browser-fetchable URL.
  *
- * Accepted inputs:
- *   assets/hero.jpg
- *   ./assets/hero.jpg
- *   /content/<slug>/assets/hero.jpg
- *   content/<slug>/assets/hero.jpg
- *   https://...
- *
- * Output always targets the preview proxy / static content tree:
- *   /content/<slug>/assets/hero.jpg  (absolute from site root — works with Vite proxy)
+ * Preferred (app stack): article.media[] name → full CDN/Spaces URL
+ * Fallback (legacy): /content/<slug>/assets/...
  */
-export function resolveContentUrl(slug, path) {
+export function resolveContentUrl(slug, path, article = null) {
   if (!path) return "";
   const raw = String(path).trim();
   if (!raw) return "";
@@ -31,24 +26,28 @@ export function resolveContentUrl(slug, path) {
     return raw;
   }
 
+  const ctx = article && article.slug === slug ? article : article || { slug, media: [] };
+  if (ctx?.media?.length) {
+    const viaMedia = resolveMediaUrl(ctx, raw);
+    if (viaMedia && (/^https?:\/\//i.test(viaMedia) || viaMedia !== raw)) {
+      return viaMedia;
+    }
+  }
+
   // Already a /content/... or content/... URL — normalize + fix wrong slug if needed
   const contentMatch = raw.match(/^(?:\/)?content\/([^/]+)\/(.+)$/);
   if (contentMatch) {
     const filePart = contentMatch[2].replace(/^\/+/, "");
-    // Prefer the article's real slug (agents sometimes typo the path)
     return `/content/${slug}/${filePart}`;
   }
 
-  // Strip leading ./ and /
   let rel = raw.replace(/^\.\//, "").replace(/^\/+/, "");
 
-  // If someone wrote articles/<slug>/assets/... strip the prefix
   const articlesPrefix = rel.match(/^articles\/[^/]+\/(.+)$/);
   if (articlesPrefix) {
     rel = articlesPrefix[1];
   }
 
-  // Bare filename → assume assets/
   if (!rel.includes("/")) {
     rel = `assets/${rel}`;
   }
@@ -57,12 +56,15 @@ export function resolveContentUrl(slug, path) {
 }
 
 export function heroSrc(article) {
-  if (!article?.hero) return "";
-  return resolveContentUrl(article.slug, article.hero);
+  if (!article) return "";
+  const fromMedia = heroMediaUrl(article);
+  if (fromMedia) return fromMedia;
+  if (!article.hero) return "";
+  return resolveContentUrl(article.slug, article.hero, article);
 }
 
 export function inlineImageSrc(article, src) {
-  return resolveContentUrl(article.slug, src);
+  return resolveContentUrl(article.slug, src, article);
 }
 
 const VIDEO_EXT = /\.(mp4|webm|ogg|mov)(\?.*)?$/i;

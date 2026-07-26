@@ -5,9 +5,32 @@
 
 const cache = { list: null };
 
-function resolveAdAsset(slug, rel) {
+function resolveAdAsset(slug, rel, ad = null) {
   if (!rel) return "";
   if (/^https?:\/\//i.test(rel)) return rel;
+  // App stack: media[] full URLs or name match
+  if (ad?.media?.length) {
+    const raw = String(rel).trim();
+    const stem = raw.replace(/^.*\//, "").replace(/\.[^.]+$/, "");
+    for (const m of ad.media) {
+      if (
+        m.url &&
+        (m.name === raw ||
+          m.name === stem ||
+          (m.filename && m.filename === raw) ||
+          (m.key && m.key.endsWith(`/${raw}`)))
+      ) {
+        return m.url;
+      }
+    }
+    const first = ad.media.find((m) => m.url);
+    if (first && (raw === "hero" || raw === "logo" || raw === "image")) {
+      const named = ad.media.find(
+        (m) => m.name === raw || (m.key || "").includes(raw)
+      );
+      if (named?.url) return named.url;
+    }
+  }
   let clean = String(rel).replace(/^\.\//, "").replace(/^\/+/, "");
   if (!clean.includes("/")) clean = `assets/${clean}`;
   return `/ads-content/${slug}/${clean}`;
@@ -15,12 +38,14 @@ function resolveAdAsset(slug, rel) {
 
 export function adImageSrc(ad) {
   if (!ad) return "";
-  return resolveAdAsset(ad.slug, ad.image || ad.logo);
+  if (ad.image && /^https?:\/\//i.test(ad.image)) return ad.image;
+  return resolveAdAsset(ad.slug, ad.image || ad.logo, ad);
 }
 
 export function adLogoSrc(ad) {
   if (!ad) return "";
-  return resolveAdAsset(ad.slug, ad.logo || ad.image);
+  if (ad.logo && /^https?:\/\//i.test(ad.logo)) return ad.logo;
+  return resolveAdAsset(ad.slug, ad.logo || ad.image, ad);
 }
 
 async function loadStaticAds() {

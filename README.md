@@ -1,23 +1,36 @@
 # Satire News Framework
 
-Self-contained framework for **realistic satirical news sites**.
+Framework for **realistic satirical news sites** — git-folder seed content plus a **Docker application stack** (MongoDB, MinIO/Spaces, Flask, nginx + ModSecurity).
 
-- Articles = folders of Markdown + assets (git is the CMS)
-- **React + Vite** SPA (responsive, social-friendly layout)
-- **Python preview server** for local article API / assets
-- Deployable as static files to **GitHub Pages**
+- Articles = folders of Markdown + assets (seed / git CMS) **or** MongoDB runtime store
+- **React + Vite** SPA (public site + `/admin` editor)
+- **Docker Compose** production path (DigitalOcean droplet + Spaces + Gcore)
+- Legacy: Python folder preview + static **GitHub Pages** (`docs/`)
 
-Publication masthead: **Agent News** · domain **[agentnews.site](https://agentnews.site)**
+Publication masthead: **Agent News** · domain **[agentnews.site](https://agentnews.site)** · lab **agentnews.local**
 
 > This is satire tooling. Content is fictional. Do not use it to impersonate real outlets for harm.
 
-## Quick start (preview)
+## Quick start (app stack — preferred)
+
+Requirements: Docker Compose, Node 20+ (for local Vite), optional Python 3.12 for API tests.
+
+```bash
+cp .env.example .env          # set ADMIN_PASSWORD, domains, secrets
+docker compose up -d --build
+docker compose exec api python -m scripts.onboard_content
+# http://localhost  (or agentnews.local if your lab DNS points here)
+```
+
+Quality: `npm run quality` (eslint, vitest, ruff, pytest, bandit). See `api/README.md` and `AGENTS.md`.
+
+## Quick start (legacy folder preview)
 
 Requirements: Node 20+, Python 3.10+, npm.
 
 ```bash
 chmod +x dev.sh          # once
-./dev.sh                 # starts API :8787 + Vite :5173
+PREVIEW_API=http://127.0.0.1:8787 ./dev.sh   # folder API :8787 + Vite :5173
 ```
 
 Open any of:
@@ -48,16 +61,17 @@ API_HOST=127.0.0.1 UI_HOST=127.0.0.1 ./dev.sh
 
 | Path | Purpose |
 |------|---------|
-| `articles/<slug>/article.md` | Story (YAML frontmatter + body) |
-| `articles/<slug>/assets/` | Optional images |
-| `preview/server.py` | Local API + content server |
-| `src/` | React SPA |
-| `skill/satire-news-article-generator/` | Agent skill for drafting articles |
-| `dev.sh` | One-command local preview |
-| `AGENTS.md` | Conventions for AI/agents |
-| `docs/` | **Production static site** for GitHub Pages (`main` + `/docs`) |
-| `ads/<slug>/` | Satirical sponsored businesses (ad rotation) |
-| `skill/satire-business-ad-generator/` | Skill to invent new ad businesses |
+| `docker-compose.yml` | mongo + minio + api + nginx/ModSecurity |
+| `api/` | Flask app (auth, articles, ads, CDN hooks, SPA/OG) |
+| `articles/<slug>/article.md` | Story seed (YAML frontmatter + body) |
+| `articles/<slug>/assets/` | Optional images (onboard → S3) |
+| `ads/<slug>/` | Satirical sponsored businesses |
+| `src/` | React SPA + admin UI |
+| `preview/server.py` | Legacy folder API + content server |
+| `agentnewsd/` | Sidecar create-article HTTP API |
+| `dev.sh` | Legacy one-command local preview |
+| `AGENTS.md` | Conventions + agent antipatterns |
+| `docs/` | Optional static export for GitHub Pages |
 
 ## Article format
 

@@ -2,60 +2,133 @@
 
 ## What this is
 
-A self-contained framework for **realistic satirical / fake-news websites**.
+A framework for **realistic satirical / fake-news websites**, evolving from git-folder CMS toward a **Dockerized application** (issue #14).
 
-**Publication:** **Agent News** · **https://agentnews.site**
+**Publication:** **Agent News** · **https://agentnews.site** (prod) · **http://agentnews.local** (lab)
 
-- Each article lives in its own folder: Markdown body + frontmatter + optional assets
-- A **React (Vite) SPA** renders the site (homepage, article pages, responsive layout, social-friendly meta)
-- A **local Python preview server** exposes article APIs and assets during development
-- Intended deploy target: **agentnews.site** (static build / GitHub Pages or similar)
+- **Legacy path:** each article is a folder (`articles/<slug>/`) + static `docs/` GitHub Pages
+- **App path (primary for production droplet):** Docker Compose → nginx (ModSecurity CRS) → Flask API + SPA → MongoDB + MinIO/Spaces
+- **agentnewsd** remains a **sidecar** for AI create-article jobs (not folded into the main API yet)
 
 This is satire tooling. Do not use it to impersonate real outlets for fraud, harassment, or disinformation campaigns.
 
 ## Product goals
 
 1. Articles look and feel like a modern news site (masthead, sections, byline, hero, body typography)
-2. Zero CMS — git + folders are the CMS
-3. One-command local preview: `./dev.sh`
-4. AI-assisted article generation via `skill/satire-news-article-generator/`
-5. Social embeds (Open Graph / Twitter cards) work well for share previews
+2. Git + folders remain the authoring seed; **MongoDB is the runtime store** for the app stack
+3. One-command local app stack: `docker compose up --build`
+4. AI-assisted article generation via `skill/satire-news-article-generator/` + `agentnewsd`
+5. Social embeds work via OG shells (Flask bot detection) + CDN prime after publish
+6. Configurable domain: change `.env` domain + credentials to go local → live
+
+## App stack (issue #14)
+
+### Compose services
+
+| Service | Role |
+|---------|------|
+| `mongo` | Articles, ads, users, sessions |
+| `minio` | Local S3 (prod: DigitalOcean Spaces + Spaces CDN) |
+| `minio-init` | Create public-read bucket |
+| `api` | Flask/gunicorn — REST, auth, SPA static, OG shells |
+| `nginx` | `owasp/modsecurity-crs:nginx-alpine` reverse proxy |
+
+### Domains
+
+| Env | Main site | Media |
+|-----|-----------|-------|
+| Lab | `agentnews.local` | `assets.agentnews.local` |
+| Prod | `agentnews.site` | `assets.agentnews.site` |
+
+Prod edge: **Gcore** for HTML/JS/CSS/API origin; **Spaces CDN** for media (no second CDN in front of Spaces).
+
+### S3 key layout
+
+```
+article/<slug>/<filename>
+ad/<slug>/<filename>
+```
+
+Public-read objects with long Cache-Control. Mongo `media[]` stores full public URLs + `name` for markdown hydration.
+
+### Article document (core)
+
+- `slug`, `title`, `dek`, `author`, `section`, `tags`, `hero` (media name)
+- `markdown` (body string)
+- `media`: `[{ type, name, url, key, filename }]`
+- `agent_source` (default `"grok"`)
+- `status`: `draft` | `published` | `scheduled`
+- `published_at`, `created_at`, `updated_at`
+- `versions[]`: prior snapshots for git-like diff (`version`, `markdown`, `title`, `edited_by`, `edited_at`, `reason`)
+
+### Auth
+
+- Username/password → `session_id`
+- Header: **`X-Session-Id`** on every authenticated `/api` call
+- Sessions in Mongo; **15-minute idle TTL** reset on use
+- Roles: `admin` (users/settings/sessions), `editor` (articles only)
+
+### API cache / CDN
+
+- All `/api/*` responses: `Cache-Control: no-store`
+- Publish/create/update of published articles → Gcore purge (stub/log if credentials unset) + HTTP prime of article URL + OG image (+ media URLs)
+
+### Admin UI
+
+- `/admin/login`, `/admin` list, `/admin/articles/:slug` editor (markdown + live preview + version diff)
+- `/admin/sessions` (admin role)
+
+### Onboard migration
+
+```bash
+docker compose exec api python -m scripts.onboard_content
+# or --dry-run with SEED_ARTICLES_DIR / SEED_ADS_DIR
+```
+
+Walks `articles/` + `ads/`, uploads assets to S3, upserts Mongo docs with initial version entry.
+
+### Quality gates
+
+```bash
+npm run quality   # eslint + vitest + ruff + pytest + bandit
+```
+
+| Tool | Scope |
+|------|--------|
+| eslint | `src/` |
+| vitest | `src/**/*.test.js` |
+| ruff | `api/app`, `api/scripts`, `api/tests` |
+| pytest | `api/tests` (mongomock) |
+| bandit | `api/app`, `api/scripts` |
 
 ## Layout
 
 ```
 .
-├── AGENTS.md                 # this file
-├── README.md
-├── package.json              # Vite + React
+├── AGENTS.md
+├── docker-compose.yml        # app stack
+├── .env.example
+├── docker/nginx/             # ModSecurity nginx templates
+├── api/                      # Flask app (issue #14)
+│   ├── app/
+│   ├── scripts/onboard_content.py
+│   ├── tests/
+│   ├── Dockerfile
+│   └── requirements.txt
+├── package.json              # Vite + React + eslint/vitest
 ├── vite.config.js
-├── index.html
-├── dev.sh                    # start/stop preview (Vite + Python)
-├── preview/
-│   └── server.py             # article API + asset server (port 8765)
-├── agentnewsd/               # Flask API: POST brief → create-article.sh (NDJSON stream)
-│   ├── app.py
-│   ├── requirements.txt
-│   └── .env.example
-├── articles/                 # one folder per story
-│   └── <slug>/
-│       ├── article.md
-│       └── assets/
-├── ads/                      # satirical sponsored businesses (ad rotation)
-│   └── <slug>/
-│       ├── business.md
-│       └── assets/
-├── src/                      # React SPA
-├── public/                   # static files → copied into docs/ on build
-├── docs/                     # production site (commit after npm run build)
+├── dev.sh                    # legacy: Vite + folder preview + agentnewsd
+├── preview/server.py         # legacy folder API :8787
+├── agentnewsd/               # sidecar create-article HTTP API
+├── articles/                 # seed / git authoring
+├── ads/
+├── src/                      # React SPA (+ admin)
+├── public/
+├── docs/                     # optional static export (GitHub Pages)
 └── skill/
-    ├── satire-news-article-generator/
-    └── satire-business-ad-generator/
-    └── satire-news-article-generator/
-        └── SKILL.md
 ```
 
-## Article format
+## Article format (filesystem seed)
 
 Each `articles/<slug>/article.md` uses YAML frontmatter:
 
@@ -64,87 +137,131 @@ Each `articles/<slug>/article.md` uses YAML frontmatter:
 title: "Headline goes here"
 dek: "Optional subhead / deck"
 author: "Byline name"
-date: "2026-07-20"          # ISO date preferred (display + sort)
-published: "2026-07-20T18:30:00Z"  # optional ISO datetime for precise homepage order
-section: "Local"             # Local | Politics | Business | Tech | Culture | Opinion | World
-hero: "assets/hero.jpg"      # optional, relative to article folder
+date: "2026-07-20"
+published: "2026-07-20T18:30:00Z"
+section: "Local"
+hero: "assets/hero.jpg"      # onboard maps to media name "hero"
 tags: ["local", "example"]
 ---
 
-Markdown body with **bold**, lists, blockquotes, etc.
+Markdown body. Prefer image refs that match media **names** (`hero`, `scene-one`)
+so the SPA can hydrate full CDN URLs from `media[]`.
 ```
 
 Slug = folder name (URL-safe, lowercase, hyphens).
 
-**Homepage sort (newest first):** optional `published` (ISO datetime) → frontmatter `date` → git last-commit time on `articles/<slug>/` (else `article.md` mtime). Same calendar day no longer relies on slug order. Shared by `scripts/build-articles.mjs` and `preview/server.py`.
+Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers in article bodies.
 
-Site chrome shows **one** satire notice (top banner). Do not repeat disclaimers in article bodies or per-story UI chips.
-
-**Share URLs** use path routes: `https://agentnews.site/article/<slug>` (not `#/article/...`). Build injects Open Graph HTML under `docs/article/<slug>/` for Discord/social cards.
+**Share URLs:** `https://agentnews.site/article/<slug>`. App stack serves OG shells for bots from Flask; static `docs/article/<slug>/` remains for Pages export.
 
 ## Dev workflow
 
+### App stack (preferred for API/admin work)
+
 ```bash
-./dev.sh              # start preview API (8787) + Vite (5173) + agentnewsd (8790)
-./dev.sh start agentnewsd   # create-article HTTP API only
-./dev.sh status
-./dev.sh logs                 # all three
-./dev.sh logs agentnewsd
-./dev.sh stop
+cp .env.example .env   # set ADMIN_PASSWORD, domains
+docker compose up -d --build
+docker compose exec api python -m scripts.onboard_content
+# site: http://localhost  (or agentnews.local if DNS points here)
+# minio console: http://localhost:9001
 ```
 
-- Frontend binds **0.0.0.0:5173** (all interfaces)
-- Phone / LAN URLs: `http://bandit:5173`, `http://bandit.local:5173`, or `http://<lan-ip>:5173`
-- Vite `server.allowedHosts: true` so Host `bandit` is accepted (not blocked)
-- Preview API binds **0.0.0.0:8787** — Vite proxies `/api` and `/content` to `127.0.0.1:8787`
-- **agentnewsd** binds **0.0.0.0:8790** by default (all interfaces; API-key create endpoint); logs in `logs/agentnewsd.log`; see `agentnewsd/README.md`
-- Local-only: `API_HOST=127.0.0.1 UI_HOST=127.0.0.1 AGENTNEWSD_HOST=127.0.0.1 ./dev.sh`
-
-Note: default preview API port is **8787** (8765 is often taken by other projects on this machine).
-
-## Build / deploy (GitHub Pages — no Actions)
-
-GitHub Pages branch deploy only supports **`/`** or **`/docs`** (not a custom `pages/` folder).
+Vite against local API:
 
 ```bash
-npm run build         # articles snapshot + Vite → docs/
-npm run preview       # serve docs/ locally
+# terminal: API on :8000 (compose or gunicorn)
+PREVIEW_API=http://127.0.0.1:8000 npm run dev
+```
+
+### Legacy folder preview
+
+```bash
+PREVIEW_API=http://127.0.0.1:8787 ./dev.sh
+```
+
+- **agentnewsd** remains separate (`./dev.sh start agentnewsd`, port 8790)
+
+## Build / deploy
+
+### Production (DigitalOcean droplet)
+
+1. Clone repo, copy `.env.example` → `.env`
+2. Set `SITE_DOMAIN`, `ASSETS_DOMAIN`, Spaces keys, `MEDIA_PUBLIC_BASE_URL`, Gcore token/resource id, strong `SECRET_KEY` + `ADMIN_PASSWORD`
+3. `docker compose up -d --build`
+4. `docker compose exec api python -m scripts.onboard_content`
+5. Point DNS + Gcore origin at the droplet; Spaces CDN host as `assets.*`
+
+### GitHub Pages (legacy static)
+
+```bash
+npm run build         # → docs/
 git add docs/ && commit && push
 ```
 
-| Path | Role |
-|------|------|
-| `docs/` | Production static site (**commit this** after build) |
-| `public/` | Source static files copied into `docs/` (favicon, CNAME, `.nojekyll`) |
-
-**Settings → Pages → Deploy from a branch → `main` / `/docs`.**  
-`vite` snapshots articles into the static bundle so Pages needs no Python API.
-
-### Pre-commit hook (auto-build `docs/`)
-
-Committed hooks live in **`.githooks/`**. After clone (or `npm install`), hooks are installed via `core.hooksPath=.githooks`.
-
-| Event | Behavior |
-|-------|----------|
-| `pre-commit` | If staged files touch `articles/`, `src/`, `public/`, etc. → `npm run build` → `git add docs/` |
-| Skip | `SKIP_DOCS_BUILD=1 git commit ...` or `git commit --no-verify` |
-| Manual install | `npm run hooks:install` or `./scripts/install-git-hooks.sh` |
+Pre-commit may rebuild `docs/` when content/src changes (`SKIP_DOCS_BUILD=1` to skip).
 
 ## Conventions for agents
 
-- Prefer editing article folders over inventing a CMS
-- **New stories:** follow `skill/satire-news-article-generator/SKILL.md` exactly (stills via `image_gen`/`image_edit` only; **never** call video tools — for video give the user an Imagine prompt and wait for their `.mp4`; `hero:` still only; curl → 200; pre-commit rebuilds `docs/`)
-- **Scripted article jobs:** `./scripts/create-article.sh "brief..."` (or `--file` / stdin) runs headless `grok` with `--cwd` set to this repo; `./scripts/create-article.sh --issues` drains open GitHub issues labeled `article-request` (oldest first; optional `--limit N`)
-- **HTTP trigger (agentnewsd):** Flask service in `agentnewsd/` — full API docs (incl. Postman): `agentnewsd/README.md`. Accepts `POST /v1/create-article` with JSON `{api_key, article_def, dry_run?}`; argv-only `create-article.sh --file`; NDJSON stream; concurrent jobs → `409`. Install: `sudo ./scripts/install-agentnewsd.sh --user SERVICE_USER`
-- **New ads / fake businesses:** follow `skill/satire-business-ad-generator/SKILL.md` (`ads/<slug>/business.md` + assets; rotation on home + articles)
-- Keep the SPA dependency-light (React + markdown renderer only)
-- Do not commit secrets; no API keys required for core preview
-- When adding sample/demo content, keep it clearly satirical and non-defamatory
-- Match existing component style; no new UI libraries unless asked
+- Prefer `articles/` + onboard for bulk seed; runtime edits go through admin API/UI
+- **New stories (git path):** follow `skill/satire-news-article-generator/SKILL.md`
+- **agentnewsd:** still the HTTP trigger for create-article jobs — do not break it while extending `api/`
+- Do not commit secrets (`.env`); use `.env.example` only
+- Match existing SPA style; admin UI is plain CSS in `index.css` (no new UI kits unless asked)
+- Run `npm run quality` before claiming API/frontend work complete
 - Update this file when architecture changes
+- Append durable lessons under **Agent antipatterns** below when you hit a non-obvious failure mode
 
-## Non-goals (for now)
+## Non-goals (current)
 
-- User accounts, comments, ads, analytics backends
-- Real-time CMS or admin UI
-- Multi-tenant multi-site theming engine (single site config is fine)
+- Redis (sessions are Mongo)
+- Folding agentnewsd into main API (sidecar for now)
+- Multi-tenant multi-site engine
+- Comments / real ad network / analytics backends
+
+---
+
+## Agent antipatterns (self-learning)
+
+Record mistakes so future agents avoid them. Add dated bullets when something bites you.
+
+### Architecture / product
+
+- **Do not assume GitHub Pages is still the only deploy path.** Prod is compose on a droplet + Spaces + Gcore; `docs/` is a legacy/static export.
+- **Do not put a second CDN in front of Spaces** unless product explicitly asks — media CDN is Spaces CDN only.
+- **Do not fold agentnewsd into `api/` casually** — it is a long-running job sidecar with different auth (API key) and timeouts.
+- **Do not serve authenticated `/api/*` with cacheable headers.** Always `Cache-Control: no-store`.
+
+### Auth / sessions
+
+- **Idle TTL tests must create the session inside the frozen clock.** Logging in before `freeze_time` makes `last_seen_at` real-now and immediately expires under a frozen timestamp.
+- **Session id is a header (`X-Session-Id`), not a cookie** for v1 — do not half-implement cookie sessions without updating the SPA and nginx.
+- **Editors must not reach `/api/users` or session listing** — enforce roles in decorators, not only in the UI.
+
+### Media / markdown
+
+- **Markdown should resolve via `media[].name`**, not hard-coded `/content/...` paths, once onboarded. Keep `/content/` only as legacy fallback for folder preview.
+- **Hero field may be a media name or absolute URL** after serialization — UI should handle both (`heroMediaUrl` / `resolveMediaUrl`).
+- **S3 object keys:** `article/<slug>/<filename>` — do not invent alternate layouts without a migration.
+
+### Docker / nginx / security
+
+- **MinIO healthchecks:** do not assume `mc` exists inside the MinIO server image; use HTTP health endpoints or a separate `mc` init container.
+- **ModSecurity CRS will false-positive on large markdown JSON** — keep narrow exclusions (body size for `/api/`), never disable CRS globally for convenience.
+- **Bootstrap admin with default password is a footgun** — log loudly; require `ADMIN_PASSWORD` change for prod writeups.
+
+### CDN
+
+- **Missing Gcore credentials must stub/log, not fail publish** in local/dev. Fail-closed only if product later requires it.
+- **Prime both the article HTML URL and the OG image URL** after publish — Discord/etc. need the image warm, not only the page.
+
+### Tooling
+
+- **Ruff `S105`/`S106` on test passwords and config defaults** — ignore in tests/config, do not “fix” by removing necessary fixtures.
+- **Flask route order:** register static paths like `/api/articles/admin` before `/api/articles/<slug>` or `admin` is captured as a slug.
+- **Vite proxy default for app work is `:8000`** (Flask). Folder preview still needs `PREVIEW_API=http://127.0.0.1:8787`.
+
+### Process
+
+- **Issue numbers:** confirm with `gh issue list` — “issue 15” may not exist; this work is **#14**.
+- **Ask remaining product forks up front** (deploy primary, ads scope, agentnewsd, CDN stub, admin scope) before multi-day rewrites.
+- **Quality bar for app PRs:** eslint + vitest + ruff + pytest + bandit (`npm run quality`), not only a manual click-test.

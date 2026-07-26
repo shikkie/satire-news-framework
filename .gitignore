@@ -21,5 +21,13 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+api/.venv/
+api/.pytest_cache/
+api/.ruff_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+*.egg-info/
+api/static/
 .vite/
 *.local
