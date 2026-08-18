@@ -31,12 +31,7 @@ services:
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
+    # Server image has neither curl nor mc; api waits on service_started + minio-init.
 
   minio-init:
     image: minio/mc:latest
@@ -45,10 +40,14 @@ services:
         condition: service_started
     entrypoint: >
       /bin/sh -c "
-      sleep 3;
-      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      i=0;
+      until mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}; do
+        i=$$((i+1));
+        if [ $$i -gt 30 ]; then echo 'minio never became ready' >&2; exit 1; fi;
+        sleep 1;
+      done;
       mc mb -p local/$${S3_BUCKET} || true;
-      mc anonymous set download local/$${S3_BUCKET} || true;
+      mc anonymous set download local/$${S3_BUCKET} || mc anonymous set public local/$${S3_BUCKET} || true;
       exit 0;
       "
     environment:
@@ -68,14 +67,23 @@ services:
       MONGO_URI: mongodb://mongo:27017
       S3_ENDPOINT_URL: http://minio:9000
     volumes:
-      # Optional: mount repo articles/ads for onboard without rebuild
+      # Live seed folders so onboard does not need an image rebuild
       - ./articles:/app/seed/articles:ro
       - ./ads:/app/seed/ads:ro
+      # Hot-edit API without rebuilding the image
+      - ./api/app:/app/app
+      - ./api/scripts:/app/scripts
+      - ./api/wsgi.py:/app/wsgi.py
+    ports:
+      # Host port often cannot be 8000 (other local APIs). Override with API_PUBLISH_PORT.
+      - "${API_PUBLISH_PORT:-8000}:8000"
     depends_on:
       mongo:
         condition: service_healthy
       minio:
         condition: service_started
+      minio-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
       interval: 15s
@@ -94,6 +102,8 @@ services:
       BLOCKING_PARANOIA: ${BLOCKING_PARANOIA:-1}
       ANOMALY_INBOUND: ${ANOMALY_INBOUND:-10}
       ANOMALY_OUTBOUND: ${ANOMALY_OUTBOUND:-5}
+      MODSEC_REQ_BODY_LIMIT: ${MODSEC_REQ_BODY_LIMIT:-33554432}
+      MODSEC_REQ_BODY_NOFILES_LIMIT: ${MODSEC_REQ_BODY_NOFILES_LIMIT:-33554432}
       SITE_DOMAIN: ${SITE_DOMAIN:-agentnews.local}
       ASSETS_DOMAIN: ${ASSETS_DOMAIN:-assets.agentnews.local}
     volumes:

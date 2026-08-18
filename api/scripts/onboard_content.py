@@ -16,6 +16,7 @@ import argparse
 import logging
 import re
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Allow `python -m scripts.onboard_content` from /app
@@ -78,6 +79,24 @@ def media_name_from_path(rel: str) -> str:
     return stem
 
 
+def parse_when(*candidates) -> datetime | None:
+    """Parse frontmatter published/date into an aware UTC datetime."""
+    for raw in candidates:
+        if raw is None:
+            continue
+        text = str(raw).strip()
+        if not text:
+            continue
+        try:
+            dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt.astimezone(UTC)
+    return None
+
+
 def onboard_articles(
     cfg: Config,
     store: MediaStore,
@@ -126,6 +145,8 @@ def onboard_articles(
         if hero:
             hero_name = media_name_from_path(str(hero))
         now = utcnow()
+        published_at = parse_when(meta.get("published"), meta.get("date")) or now
+        date_str = meta.get("date") or published_at.date().isoformat()
         version = {
             "version": 1,
             "markdown": body,
@@ -139,7 +160,7 @@ def onboard_articles(
             "title": meta.get("title") or slug,
             "dek": meta.get("dek") or "",
             "author": meta.get("author") or "Staff",
-            "date": meta.get("date") or "",
+            "date": date_str,
             "section": meta.get("section") or "News",
             "tags": meta.get("tags") or [],
             "disclaimer": meta.get("disclaimer", True),
@@ -148,7 +169,7 @@ def onboard_articles(
             "media": media_items,
             "agent_source": meta.get("agent_source") or "grok",
             "status": "published",
-            "published_at": now,
+            "published_at": published_at,
             "created_at": now,
             "updated_at": now,
             "versions": [version],

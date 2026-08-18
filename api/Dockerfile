@@ -2,7 +2,8 @@
 FROM node:22-bookworm-slim AS frontend
 WORKDIR /frontend
 COPY package.json package-lock.json ./
-RUN npm ci
+# prepare installs git hooks — skip in the image
+RUN npm ci --ignore-scripts
 COPY index.html vite.config.js ./
 COPY public ./public
 COPY src ./src
