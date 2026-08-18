@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from flask import Flask, g, request
 
@@ -15,12 +14,9 @@ from app.services.bootstrap import ensure_bootstrap_admin
 
 def create_app(config: Config | None = None) -> Flask:
     cfg = config or Config.from_env()
-    static_folder = Path(cfg.static_dir)
-    app = Flask(
-        __name__,
-        static_folder=str(static_folder) if static_folder.is_dir() else None,
-        static_url_path="",
-    )
+    # Do not register Flask's built-in static route at "". It 404s unknown
+    # paths (e.g. /admin/login) before the SPA fallback blueprint can run.
+    app = Flask(__name__, static_folder=None)
     app.config.from_mapping(cfg.as_flask_mapping())
     app.config["APP_CONFIG"] = cfg
 

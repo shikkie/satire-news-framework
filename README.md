@@ -17,10 +17,24 @@ Requirements: Docker Compose, Node 20+ (for local Vite), optional Python 3.12 fo
 
 ```bash
 cp .env.example .env          # set ADMIN_PASSWORD, domains, secrets
+# This lab already binds :80 and :8000. Typical local .env overrides:
+#   NGINX_HTTP_PORT=8088
+#   API_PUBLISH_PORT=8014
+#   SITE_URL=http://127.0.0.1:8088
+#   MEDIA_PUBLIC_BASE_URL=http://127.0.0.1:9000/agentnews-media
 docker compose up -d --build
 docker compose exec api python -m scripts.onboard_content
-# http://localhost  (or agentnews.local if your lab DNS points here)
 ```
+
+| What | URL (this lab) |
+|------|----------------|
+| Site + CMS (`/admin/login`) | http://127.0.0.1:8088 |
+| Flask API (Vite proxy target) | http://127.0.0.1:8014 |
+| MinIO S3 API | http://127.0.0.1:9000 |
+| MinIO console | http://127.0.0.1:9001 |
+| Lab DNS (optional) | `agentnews.local` / `assets.agentnews.local` |
+
+Default admin is `ADMIN_USERNAME` / `ADMIN_PASSWORD` from `.env`. Onboard upserts every `articles/` + `ads/` folder into Mongo and MinIO.
 
 Quality: `npm run quality` (eslint, vitest, ruff, pytest, bandit). See `api/README.md` and `AGENTS.md`.
 

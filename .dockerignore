@@ -1,0 +1,16 @@
+.git
+.githooks
+.worktrees
+node_modules
+docs
+logs
+.dev
+.pids
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+*.pyc
+.env
+.env.*
+!.env.example
