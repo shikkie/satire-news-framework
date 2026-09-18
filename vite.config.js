@@ -1,7 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-const PREVIEW_API = process.env.PREVIEW_API || "http://127.0.0.1:8787";
+// Prefer app-stack Flask (:8000). Legacy folder preview remains 8787 via PREVIEW_API.
+const PREVIEW_API =
+  process.env.PREVIEW_API || process.env.API_PROXY || "http://127.0.0.1:8000";
 
 // Hostnames phones / LAN clients use (machine is "bandit" on this network).
 // Comma-separated override: VITE_ALLOWED_HOSTS=bandit,bandit.local,myhost

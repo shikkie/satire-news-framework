@@ -1,0 +1,12 @@
+# Bandit security scan config for Agent News API
+exclude_dirs:
+  - tests
+  - .venv
+  - venv
+skips:
+  # Test / bootstrap defaults are intentional
+  - B105
+  - B106
+  - B107
+  # Index creation optional under mongomock — we log at debug
+  - B110
