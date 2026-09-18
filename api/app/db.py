@@ -51,6 +51,7 @@ def ensure_indexes(db: Database) -> None:
     db.sessions.create_index("last_seen_at")
     db.articles.create_index("slug", unique=True)
     db.articles.create_index([("status", ASCENDING), ("published_at", DESCENDING)])
+    db.articles.create_index([("status", ASCENDING), ("scheduled_at", ASCENDING)])
     db.articles.create_index([("created_at", DESCENDING)])
     db.articles.create_index([("updated_at", DESCENDING)])
     # Text index for search

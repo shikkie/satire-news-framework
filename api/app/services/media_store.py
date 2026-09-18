@@ -114,6 +114,16 @@ class MediaStore:
             )
         return self.public_url(key)
 
+    def get_bytes(self, key: str) -> bytes:
+        try:
+            resp = self._client.get_object(Bucket=self.cfg.s3_bucket, Key=key)
+        except ClientError as exc:
+            raise FileNotFoundError(key) from exc
+        body = resp.get("Body")
+        if body is None:
+            raise FileNotFoundError(key)
+        return body.read()
+
     def delete_key(self, key: str) -> None:
         try:
             self._client.delete_object(Bucket=self.cfg.s3_bucket, Key=key)

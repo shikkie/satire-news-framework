@@ -57,7 +57,11 @@ Public-read objects with long Cache-Control. Mongo `media[]` stores full public 
 - `markdown` (body string)
 - `media`: `[{ type, name, url, key, filename }]`
 - `agent_source` (default `"grok"`)
+- `creation_prompt` (optional brief for automated AI creation; admin New article field; alias `article_def` on write)
 - `status`: `draft` | `published` | `scheduled`
+- `scheduled_at` (UTC datetime; required when `status=scheduled`)
+- `post_to_x` (bool, default true) — per-article toggle; posts only if `X_POST_ENABLED`
+- `x_post`: last X post attempt (`status`, `id`, `url`, `text`, `error`, `posted_at`)
 - `published_at`, `created_at`, `updated_at`
 - `versions[]`: prior snapshots for git-like diff (`version`, `markdown`, `title`, `edited_by`, `edited_at`, `reason`)
 
@@ -72,10 +76,21 @@ Public-read objects with long Cache-Control. Mongo `media[]` stores full public 
 
 - All `/api/*` responses: `Cache-Control: no-store`
 - Publish/create/update of published articles → Gcore purge (stub/log if credentials unset) + HTTP prime of article URL + OG image (+ media URLs)
+- First transition to `published` (manual **or** scheduled due) → optional X post when `X_POST_ENABLED` and `post_to_x`. Missing OAuth creds stub/log; never blocks publish. Do not tweet again if `x_post.id` exists.
+
+### Scheduler
+
+- Background thread in the API process (atomic `find_one_and_update` so gunicorn workers do not double-publish)
+- `SCHEDULER_ENABLED` (default true in compose) / `SCHEDULER_POLL_SECONDS` (default 30)
+- Manual tick: `POST /api/articles/admin/publish-due`
+- Due = `status=scheduled` AND `scheduled_at <= now` → `published` + CDN + X post
 
 ### Admin UI
 
 - `/admin/login`, `/admin` list, `/admin/articles/:slug` editor (markdown + live preview + version diff)
+- New/edit: **Publish at** datetime + **Post to X when published** checkbox
+- **Generate from prompt** runs host `grok` with `skill/satire-news-cms-article-generator/` (app stack: write `articles/<slug>/`, no git/Pages), then imports into the same Mongo draft + MinIO. Does not auto-publish. `agentnewsd` is the legacy git-folder sidecar — do not use it for CMS generate.
+- **Export JSON** (editor) / **Import article** (list): portable `agentnews.article.v1` JSON with base64 assets. Download or copy/paste; upload or paste to import. Default import is a draft; does not tweet. `GET /api/articles/<slug>/export`, `POST /api/articles/import`.
 - `/admin/sessions` (admin role)
 
 ### Onboard migration
@@ -253,6 +268,8 @@ Record mistakes so future agents avoid them. Add dated bullets when something bi
 
 - **Missing Gcore credentials must stub/log, not fail publish** in local/dev. Fail-closed only if product later requires it.
 - **Prime both the article HTML URL and the OG image URL** after publish — Discord/etc. need the image warm, not only the page.
+- **X posts only on the first transition to published** (including the scheduled-due tick). Do not tweet from onboard, or from every save of an already-published article.
+- **X_POST_ENABLED is the master switch.** Per-article `post_to_x` is stored even when the feature is off so it applies later. Missing OAuth creds must stub/log, not fail publish.
 
 ### Tooling
 

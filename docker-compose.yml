@@ -20,7 +20,8 @@ services:
       start_period: 20s
 
   minio:
-    image: minio/minio:latest
+    # Docker Hub minio/minio was removed; Quay still publishes the community images.
+    image: quay.io/minio/minio:latest
     command: server /data --console-address ":9001"
     restart: unless-stopped
     environment:
@@ -34,7 +35,7 @@ services:
     # Server image has neither curl nor mc; api waits on service_started + minio-init.
 
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
     depends_on:
       minio:
         condition: service_started
@@ -64,12 +65,18 @@ services:
     env_file:
       - .env
     environment:
-      MONGO_URI: mongodb://mongo:27017
+      # Prefer .env (host Mongo on :27017, or compose service `mongo`)
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}
+      MONGO_DB: ${MONGO_DB:-agentnews}
       S3_ENDPOINT_URL: http://minio:9000
+      GROK_BIN: ${GROK_BIN:-/usr/local/bin/grok}
+      GROK_CWD: /app
     volumes:
-      # Live seed folders so onboard does not need an image rebuild
-      - ./articles:/app/seed/articles:ro
+      # Live seed folders so onboard / CMS generate can read-write
+      - ./articles:/app/seed/articles
+      - ./articles:/app/articles
       - ./ads:/app/seed/ads:ro
+      - ./skill:/app/skill:ro
       # Hot-edit API without rebuilding the image
       - ./api/app:/app/app
       - ./api/scripts:/app/scripts
@@ -80,6 +87,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+        required: false
       minio:
         condition: service_started
       minio-init:

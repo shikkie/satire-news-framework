@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -7,6 +7,7 @@ import {
   formatDate,
   heroSrc,
   inlineImageSrc,
+  isArticlePreviewSearch,
   isVideoSrc,
 } from "../lib/articles.js";
 import {
@@ -19,6 +20,8 @@ import CopyArticleLink from "../components/CopyArticleLink.jsx";
 
 export default function ArticlePage() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
+  const preview = isArticlePreviewSearch(searchParams);
   const [article, setArticle] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -29,7 +32,7 @@ export default function ArticlePage() {
     setError("");
     (async () => {
       try {
-        const data = await fetchArticle(slug);
+        const data = await fetchArticle(slug, { preview });
         if (!alive) return;
         if (!data) setError("Article not found");
         else setArticle(data);
@@ -42,7 +45,7 @@ export default function ArticlePage() {
     return () => {
       alive = false;
     };
-  }, [slug]);
+  }, [slug, preview]);
 
   useEffect(() => {
     if (!article) return;
@@ -78,8 +81,15 @@ export default function ArticlePage() {
 
   const hero = heroSrc(article);
 
+  const unpublishedPreview = preview && article.status && article.status !== "published";
+
   return (
     <article className="story">
+      {unpublishedPreview ? (
+        <p className="preview-banner" role="status">
+          Unpublished preview — not on the homepage.
+        </p>
+      ) : null}
       <p className="eyebrow">
         <span className="section-label">{article.section}</span>
         {article.date ? (

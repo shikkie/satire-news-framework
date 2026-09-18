@@ -57,3 +57,14 @@ SEED_ARTICLES_DIR=../articles SEED_ADS_DIR=../ads \
 | GET | `/api/ads` | active ads |
 
 Authenticated article admin routes live under `/api/articles/admin`, `POST/PUT /api/articles`, publish, versions.
+
+Portable article copy (admin session):
+
+| Method | Path | Notes |
+|--------|------|--------|
+| GET | `/api/articles/<slug>/export` | JSON bundle: fields + base64 assets. `?download=1` attaches a file |
+| POST | `/api/articles/import` | Body is the export JSON, or `{bundle, overwrite, as_draft}`. Default `as_draft=true` |
+
+The bundle `format` is `agentnews.article.v1`. Import does not tweet.
+
+`status=scheduled` plus `scheduled_at` (ISO UTC) queues a go-live. The API poller (or `POST /api/articles/admin/publish-due`) publishes due stories and, if `X_POST_ENABLED` and `post_to_x`, posts to X. `GET /api/settings` returns those feature flags.

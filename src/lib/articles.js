@@ -106,16 +106,25 @@ export async function fetchArticles() {
   return cache.list;
 }
 
-export async function fetchArticle(slug) {
-  if (cache.bySlug.has(slug)) return cache.bySlug.get(slug);
+/** Query flag that unlocks unpublished stories for anyone who has the URL. */
+export const ARTICLE_PREVIEW_PARAM = "_agentnewspreview";
+
+export function isArticlePreviewSearch(search) {
+  const q = new URLSearchParams(search || (typeof window !== "undefined" ? window.location.search : ""));
+  return q.get(ARTICLE_PREVIEW_PARAM) === "1";
+}
+
+export async function fetchArticle(slug, { preview = false } = {}) {
+  if (!preview && cache.bySlug.has(slug)) return cache.bySlug.get(slug);
 
   try {
-    const res = await fetch(`/api/articles/${encodeURIComponent(slug)}`, {
+    const qs = preview ? `?${ARTICLE_PREVIEW_PARAM}=1` : "";
+    const res = await fetch(`/api/articles/${encodeURIComponent(slug)}${qs}`, {
       cache: "no-store",
     });
     if (res.ok) {
       const article = await res.json();
-      cache.bySlug.set(slug, article);
+      if (!preview) cache.bySlug.set(slug, article);
       return article;
     }
   } catch {

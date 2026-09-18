@@ -63,6 +63,22 @@ class Config:
     gcore_cdn_base_url: str = ""
     spaces_cdn_prime: bool = True
 
+    # X / Twitter — off until X_POST_ENABLED=true and OAuth 1.0a creds are set
+    x_post_enabled: bool = False
+    x_api_key: str = ""
+    x_api_secret: str = ""
+    x_access_token: str = ""
+    x_access_token_secret: str = ""
+    x_api_base: str = "https://api.twitter.com"
+
+    scheduler_enabled: bool = False
+    scheduler_poll_seconds: int = 30
+
+    grok_bin: str = ""
+    grok_model: str = ""
+    grok_cwd: str = "/app"
+    grok_timeout_seconds: int = 3600
+
     static_dir: str = ""
     seed_articles_dir: str = "/app/seed/articles"
     seed_ads_dir: str = "/app/seed/ads"
@@ -119,6 +135,18 @@ class Config:
             gcore_resource_id=_env("GCORE_RESOURCE_ID"),
             gcore_cdn_base_url=_env("GCORE_CDN_BASE_URL"),
             spaces_cdn_prime=_env_bool("SPACES_CDN_PRIME", True),
+            x_post_enabled=_env_bool("X_POST_ENABLED", False),
+            x_api_key=_env("X_API_KEY"),
+            x_api_secret=_env("X_API_SECRET"),
+            x_access_token=_env("X_ACCESS_TOKEN"),
+            x_access_token_secret=_env("X_ACCESS_TOKEN_SECRET"),
+            x_api_base=_env("X_API_BASE", "https://api.twitter.com"),
+            scheduler_enabled=_env_bool("SCHEDULER_ENABLED", True),
+            scheduler_poll_seconds=max(5, _env_int("SCHEDULER_POLL_SECONDS", 30)),
+            grok_bin=_env("GROK_BIN", "/usr/local/bin/grok"),
+            grok_model=_env("GROK_MODEL"),
+            grok_cwd=_env("GROK_CWD", "/app"),
+            grok_timeout_seconds=max(60, _env_int("GROK_TIMEOUT_SECONDS", 3600)),
             static_dir=_env("STATIC_DIR", static_default),
             seed_articles_dir=_env("SEED_ARTICLES_DIR", "/app/seed/articles"),
             seed_ads_dir=_env("SEED_ADS_DIR", "/app/seed/ads"),
@@ -128,6 +156,8 @@ class Config:
         return {
             "SECRET_KEY": self.secret_key,
             "DEBUG": self.debug,
+            # Match nginx client_max_body_size (article JSON bundles with base64 media).
+            "MAX_CONTENT_LENGTH": 32 * 1024 * 1024,
         }
 
     def public_media_url(self, key: str) -> str:

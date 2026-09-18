@@ -30,12 +30,19 @@ def test_create_list_get_publish(client, admin_session):
     body = create.get_json()["article"]
     assert body["slug"] == "test-story"
     assert body["status"] == "draft"
+    assert body["creation_prompt"] == ""
     assert len(body["versions"]) == 1
 
     # Public list hides drafts
     pub = client.get("/api/articles")
     assert pub.status_code == 200
     assert all(a["slug"] != "test-story" for a in pub.get_json()["articles"])
+
+    assert client.get("/api/articles/test-story").status_code == 404
+    preview = client.get("/api/articles/test-story?_agentnewspreview=1")
+    assert preview.status_code == 200
+    assert preview.get_json()["slug"] == "test-story"
+    assert preview.get_json()["status"] == "draft"
 
     # Admin list shows
     admin_list = client.get("/api/articles/admin", headers=admin_session)
@@ -51,6 +58,66 @@ def test_create_list_get_publish(client, admin_session):
     assert got.status_code == 200
     assert "Hello **world**" in got.get_json()["body"]
     assert got.get_json()["hero"].startswith("http")
+
+
+def test_create_without_slug_allocates_placeholder(client, admin_session):
+    res = client.post(
+        "/api/articles",
+        headers=admin_session,
+        json={"title": "Untitled", "status": "draft", "creation_prompt": "A brief."},
+    )
+    assert res.status_code == 201, res.get_data(as_text=True)
+    art = res.get_json()["article"]
+    assert art["placeholder"] is True
+    assert art["slug"].startswith("draft-")
+    pub = client.post(
+        f"/api/articles/{art['slug']}/publish",
+        headers=admin_session,
+    )
+    assert pub.status_code == 400
+
+
+def test_create_stores_creation_prompt(client, admin_session):
+    prompt = "Kitten calls 911 because breakfast is late. Interview the sergeant."
+    create = client.post(
+        "/api/articles",
+        headers=admin_session,
+        json={
+            "slug": "ai-brief-story",
+            "title": "Placeholder",
+            "status": "draft",
+            "creation_prompt": prompt,
+        },
+    )
+    assert create.status_code == 201, create.get_data(as_text=True)
+    assert create.get_json()["article"]["creation_prompt"] == prompt
+
+    alias = client.post(
+        "/api/articles",
+        headers=admin_session,
+        json={
+            "slug": "ai-brief-alias",
+            "title": "Placeholder",
+            "status": "draft",
+            "article_def": "Same brief via article_def alias.",
+        },
+    )
+    assert alias.status_code == 201
+    assert (
+        alias.get_json()["article"]["creation_prompt"]
+        == "Same brief via article_def alias."
+    )
+
+    upd = client.put(
+        "/api/articles/ai-brief-story",
+        headers=admin_session,
+        json={"creation_prompt": "Updated brief for the generator."},
+    )
+    assert upd.status_code == 200
+    assert upd.get_json()["article"]["creation_prompt"] == "Updated brief for the generator."
+
+    got = client.get("/api/articles/ai-brief-story", headers=admin_session)
+    assert got.get_json()["creation_prompt"] == "Updated brief for the generator."
 
 
 def test_version_history_on_edit(client, admin_session):

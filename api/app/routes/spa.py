@@ -88,7 +88,10 @@ def article_shell(slug: str):  # type: ignore[no-untyped-def]
     if _is_bot():
         cfg = get_config()
         db = get_db(cfg)
-        doc = db.articles.find_one({"slug": slug, "status": "published"})
+        query = {"slug": slug}
+        if request.args.get("_agentnewspreview") != "1":
+            query["status"] = "published"
+        doc = db.articles.find_one(query)
         if doc:
             ser = serialize_article(doc, include_body=False)
             return Response(_og_shell(ser), mimetype="text/html; charset=utf-8")

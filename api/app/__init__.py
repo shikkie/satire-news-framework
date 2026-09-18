@@ -73,4 +73,11 @@ def create_app(config: Config | None = None) -> Flask:
     except Exception as exc:  # noqa: BLE001 — startup should not crash compose loops
         app.logger.warning("Startup index/bootstrap skipped: %s", exc)
 
+    try:
+        from app.services.scheduler import start_publish_scheduler
+
+        start_publish_scheduler(app)
+    except Exception as exc:  # noqa: BLE001
+        app.logger.warning("Publish scheduler not started: %s", exc)
+
     return app
